@@ -1,0 +1,423 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+/* Background Image */
+body{
+    height:100vh;
+    overflow:hidden;
+    background:url("../images/gymdb.jpg") no-repeat center center/cover;
+    position:relative;
+}
+
+/* Overlay */
+body::before{
+    content:"";
+    position:absolute;
+    width:100%;
+    height:100%;
+    background:linear-gradient(135deg, rgba(0,0,0,0.75), rgba(79,70,229,0.6));
+    z-index:1;
+}
+
+/* Particle Layer */
+#tsparticles{
+    position:absolute;
+    width:100%;
+    height:100%;
+    z-index:2;
+}
+
+/* Wrapper */
+.wrapper{
+    position:relative;
+    z-index:3;
+    display:flex;
+    width:100%;
+    height:100vh;
+}
+
+/* Sidebar */
+.sidebar{
+    width:240px;
+    padding:30px;
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(25px);
+    border-right:1px solid rgba(255,255,255,0.2);
+    color:white;
+}
+
+.sidebar h2{
+    margin-bottom:40px;
+}
+
+.sidebar a{
+    display:block;
+    padding:12px 15px;
+    margin-bottom:12px;
+    border-radius:12px;
+    text-decoration:none;
+    color:white;
+    transition:0.3s;
+}
+
+.sidebar a:hover,
+.sidebar a.active{
+    background:rgba(255,255,255,0.2);
+}
+
+/* Main */
+.main{
+    flex:1;
+    padding:50px;
+    color:white;
+    overflow:auto;
+}
+
+/* Topbar */
+.topbar{
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(30px);
+    padding:20px 30px;
+    border-radius:25px;
+    border:1px solid rgba(255,255,255,0.25);
+    margin-bottom:40px;
+}
+
+/* Cards */
+.cards{
+    display:flex;
+    gap:25px;
+    flex-wrap:wrap;
+}
+
+.card{
+    flex:1;
+    min-width:260px;
+    padding:35px;
+    border-radius:30px;
+    background:rgba(255,255,255,0.12);
+    backdrop-filter:blur(35px);
+    border:1px solid rgba(255,255,255,0.25);
+    box-shadow:0 25px 50px rgba(0,0,0,0.3);
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+}
+
+.card h4{
+    font-size:14px;
+    opacity:0.8;
+    margin-bottom:15px;
+}
+
+.card h1{
+    font-size:36px;
+    font-weight:600;
+}
+/* =================================
+   PROFESSIONAL GLASS TABLE
+================================== */
+
+.glass-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0 16px;   /* GAP BETWEEN ROWS */
+    margin-top:25px;
+    color:white;
+}
+
+.glass-table thead th{
+    text-align:left;
+    padding:14px 18px;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    opacity:0.8;
+}
+
+.glass-table tbody tr{
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(20px);
+    border-radius:18px;
+    transition:0.3s ease;
+}
+
+.glass-table tbody tr:hover{
+    transform:translateY(-4px);
+    background:rgba(255,255,255,0.15);
+}
+
+.glass-table tbody td{
+    padding:18px 20px;
+    font-size:14px;
+    border:none;
+}
+
+/* Rounded row corners */
+.glass-table tbody tr td:first-child{
+    border-top-left-radius:18px;
+    border-bottom-left-radius:18px;
+}
+
+.glass-table tbody tr td:last-child{
+    border-top-right-radius:18px;
+    border-bottom-right-radius:18px;
+}
+
+select, button{
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    margin-top:15px;
+}
+
+button{
+    background:#6c63ff;
+    color:white;
+    cursor:pointer;
+}
+.btn-small{
+    background:#6c63ff;
+    padding:6px 12px;
+    border-radius:8px;
+    color:white;
+    text-decoration:none;
+    font-size:13px;
+}
+
+.btn-small:hover{
+    opacity:0.8;
+}
+/* ULTRA PREMIUM ADD MEMBER BUTTON */
+.btn-add {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    color: #ffffff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    transition: all 0.3s ease;
+}
+
+.btn-add:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 35px rgba(0,0,0,0.35);
+}
+
+.btn-add .icon {
+    transition: 0.3s ease;
+}
+
+.btn-add:hover .icon {
+    transform: rotate(90deg);
+}
+/* =================================
+   ULTRA PREMIUM ACTION BUTTONS
+================================== */
+
+.action-buttons a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: white;
+    overflow: hidden;
+    transition: 0.3s ease;
+    margin-right: 8px;
+    backdrop-filter: blur(10px);
+}
+
+/* ================= DELETE BUTTON ================= */
+
+.btn-danger {
+    background: linear-gradient(135deg, #ff4d4d, #b91c1c);
+    box-shadow: 0 8px 20px rgba(255,77,77,0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(255,77,77,0.5);
+}
+
+/* ================= VIEW BUTTON ================= */
+
+.btn-success {
+    background: linear-gradient(135deg, #34d399, #059669);
+    box-shadow: 0 8px 20px rgba(52,211,153,0.3);
+}
+
+.btn-success:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(52,211,153,0.5);
+}
+
+/* ================= ICON ANIMATION ================= */
+
+.action-buttons .icon {
+    transition: transform 0.3s ease;
+}
+
+.action-buttons a:hover .icon {
+    transform: scale(1.25) rotate(5deg);
+}
+
+/* ================= GLOW ANIMATION ================= */
+
+.action-buttons a::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 60%);
+    opacity: 0;
+    transition: 0.4s;
+}
+
+.action-buttons a:hover::before {
+    opacity: 1;
+}
+
+/* ================= RIPPLE CLICK EFFECT ================= */
+
+.action-buttons a:active {
+    transform: scale(0.95);
+}
+
+/* ================= SMOOTH TRANSITION ================= */
+
+.action-buttons a {
+    transition: all 0.25s ease-in-out;
+}
+.payments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Glass Card */
+.glass-card {
+    background: var(--card);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+/* Premium Add Button */
+.btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    color: white;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    transition: 0.3s ease;
+}
+
+.btn-add:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+}
+
+/* Action Buttons */
+.btn-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn-success:hover {
+    transform: translateY(-3px);
+}
+/* Payment Summary Card */
+.summary-card {
+    background: rgba(255,255,255,0.08);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    backdrop-filter: blur(10px);
+}
+
+.summary-card h4 {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.summary-card h1 {
+    font-size: 28px;
+    margin-top: 5px;
+}
+
+/* Table polish */
+table th {
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+table td.amount {
+    font-weight: 600;
+    color: #10b981;
+}
+.toast{
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    padding: 18px 28px;
+    border-radius: 16px;
+    color: white;
+    font-weight: 600;
+    backdrop-filter: blur(20px);
+    animation: slideIn 0.5s ease;
+    z-index: 9999;
+}
+
+.toast.success{
+    background: linear-gradient(135deg,#10b981,#059669);
+}
+
+.toast.error{
+    background: linear-gradient(135deg,#ef4444,#b91c1c);
+}
+
+.toast.warning{
+    background: linear-gradient(135deg,#f59e0b,#d97706);
+}
+
+@keyframes slideIn{
+    from{
+        transform: translateX(120%);
+        opacity:0;
+    }
+    to{
+        transform: translateX(0);
+        opacity:1;
+    }
+}
