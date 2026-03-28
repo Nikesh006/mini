@@ -3,7 +3,7 @@ import os
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'gym_secret_key_123'
     # Use DATABASE_URL from environment if available, otherwise use local gymcopy
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'mysql+mysqlconnector://root:Nikesh%402006@localhost/gymcopy'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://postgres:postgres@localhost/gymcopy'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Email configurations (Example for Gmail - User must configure)

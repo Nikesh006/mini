@@ -235,17 +235,17 @@ def ensure_runtime_schema():
 
     try:
         db.session.execute(text("""
-            UPDATE payment p
-            JOIN member m ON p.member_id = m.id
-            SET p.gym_id = m.gym_id
-            WHERE p.gym_id IS NULL
+            UPDATE payment
+            SET gym_id = member.gym_id
+            FROM member
+            WHERE payment.member_id = member.id AND payment.gym_id IS NULL
         """))
         db.session.commit()
     except Exception:
         db.session.rollback()
 
     try:
-        db.session.execute(text("ALTER TABLE booking MODIFY trainer_id INTEGER NULL"))
+        db.session.execute(text("ALTER TABLE booking ALTER COLUMN trainer_id DROP NOT NULL"))
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -317,13 +317,8 @@ def delete_user_archive(user):
         db.session.delete(user)
         db.session.commit()
 
-        try:
-            db.session.execute(db.text("ALTER TABLE user AUTO_INCREMENT = 1"))
-            db.session.execute(db.text("ALTER TABLE member AUTO_INCREMENT = 1"))
-            db.session.execute(db.text("ALTER TABLE trainer AUTO_INCREMENT = 1"))
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
+        # Auto-increment resets removed for PostgreSQL compatibility
+        pass
     except Exception:
         db.session.rollback()
         raise
