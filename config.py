@@ -11,5 +11,5 @@ class Config:
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'nammudegym@gmail.com'
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or 'wxap ysth kktq lsgh'
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') # Do not hardcode App Passwords!
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or 'nammudegym@gmail.com'
