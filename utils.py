@@ -11,38 +11,43 @@ IST = timezone(timedelta(hours=5, minutes=30))
 def get_ist_time():
     return datetime.now(IST).replace(tzinfo=None)
 
-def send_email(subject, html_body, to_email):
-    """Sends an HTML email using the Flask application's configuration."""
-    # Use current_app to access app config in a utility function
-    smtp_server = current_app.config.get('MAIL_SERVER')
-    smtp_port = current_app.config.get('MAIL_PORT')
-    smtp_user = current_app.config.get('MAIL_USERNAME')
-    smtp_password = current_app.config.get('MAIL_PASSWORD')
-    sender_email = current_app.config.get('MAIL_DEFAULT_SENDER')
+import requests
 
-    if not all([smtp_server, smtp_port, smtp_user, smtp_password, sender_email]):
-        print("Email configuration missing. Skipping email sending.")
+def send_email(subject, html_body, to_email):
+    """Sends an HTML email using the Resend HTTP API over HTTPS to bypass SMTP blocking."""
+    api_key = os.environ.get('RESEND_API_KEY')
+    
+    if not api_key:
+        print("RESEND_API_KEY environment variable missing. Email skipped.")
         return False
 
-    msg = MIMEMultipart()
-    msg['From'] = f"Nammude Gym <{sender_email}>"
-    msg['To'] = to_email
-    msg['Subject'] = subject
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
     
-    # Attach HTML body
-    msg.attach(MIMEText(html_body, 'html'))
+    payload = {
+        # Using Resend's default onboarding testing domain. Note: Test mode will only deliver to the 
+        # registered email address on your Resend account!
+        "from": "Nammude Gym <onboarding@resend.dev>",
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body
+    }
 
     try:
-        print(f"Attempting to send email to {to_email}...")
-        server = smtplib.SMTP(smtp_server, smtp_port, timeout=5)
-        server.starttls()
-        server.login(smtp_user, smtp_password)
-        server.send_message(msg)
-        server.quit()
-        print(f"Email successfully sent to {to_email}!")
-        return True
+        print(f"Attempting cross-platform API delivery to {to_email}...")
+        res = requests.post("https://api.resend.com/emails", json=payload, headers=headers, timeout=10)
+        
+        if res.status_code == 200:
+            print(f"Email API dispatch verified for {to_email}!")
+            return True
+        else:
+            print(f"Resend API Error ({res.status_code}): {res.text}")
+            return False
+            
     except Exception as e:
-        print(f"Error sending email to {to_email}: {e}")
+        print(f"Fatal delivery error via API endpoints: {e}")
         return False
 
 def allowed_file(filename):
