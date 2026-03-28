@@ -34,7 +34,7 @@ def send_email(subject, html_body, to_email):
 
     try:
         print(f"Attempting to send email to {to_email}...")
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=5)
         server.starttls()
         server.login(smtp_user, smtp_password)
         server.send_message(msg)
