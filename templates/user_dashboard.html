@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; display: flex; justify-content: space-between; align-items: flex-end;">
+    <div>
+        <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">WELCOME, <span>{{ member.full_name.upper() if member else current_user.username.upper() }}</span></h1>
+        <p class="dashboard-subtitle">YOUR PERFORMANCE ARCHIVE</p>
+    </div>
+    <a href="{{ url_for('edit_profile') }}" class="premium-btn" style="width: auto; padding: 0.8rem 1.5rem; font-size: 0.75rem; border-radius: 12px; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-user-edit" style="font-size: 0.7rem;"></i> EDIT PROFILE
+    </a>
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card" style="border-color: rgba(16, 185, 129, 0.2);">
+        <span class="metric-label">MEMBERSHIP STATUS</span>
+        <div class="metric-value" style="color: #10B981;">{{ (member.status.upper() if member else 'PENDING') }}</div>
+        <i class="fas fa-id-card" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">DAYS REMAINING</span>
+        <div class="metric-value">
+            {% if member and member.expiry_date %}
+                {% set remaining = (member.expiry_date - now).days %}
+                {{ [remaining, 0]|max }}
+            {% else %}
+                0
+            {% endif %}
+        </div>
+        <i class="fas fa-calendar-day" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">SESSIONS LOGGED</span>
+        <div class="metric-value">{{ sessions_count }}</div>
+        <i class="fas fa-fire-alt" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">CURRENT WEIGHT</span>
+        <div class="metric-value">
+            {{ member.weight if member else '--' }} <span style="font-size: 1rem; color: var(--text-secondary);">KG</span>
+            <button onclick="document.getElementById('weightModal').style.display='flex'" style="background: none; border: none; color: var(--primary-orange); cursor: pointer; font-size: 0.8rem; margin-left: 10px;"><i class="fas fa-edit"></i></button>
+        </div>
+        <i class="fas fa-weight" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-top: 3rem;">
+    <!-- Workout Plan Section -->
+    <div class="data-card" style="margin-top: 0; padding: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3 style="font-weight: 700; letter-spacing: 1px;">ACTIVE TRAINING PLAN</h3>
+            <a href="{{ url_for('view_workouts') }}" class="premium-btn" style="width: auto; padding: 0.6rem 1.5rem; font-size: 0.75rem; border-radius: 12px; text-decoration: none;">VIEW ALL PLANS</a>
+        </div>
+        
+        {% if latest_workout %}
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <h4 style="color: white; font-weight: 800;">{{ latest_workout.plan_name.upper() }}</h4>
+                <span style="background: rgba(255, 122, 0, 0.1); color: var(--text-accent); padding: 2px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 800;">{{ latest_workout.day.upper() }}</span>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; white-space: pre-line;">{{ latest_workout.exercises }}</p>
+        </div>
+        {% else %}
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem; text-align: center;">
+            <i class="fas fa-dumbbell" style="font-size: 2.5rem; color: var(--primary-orange); margin-bottom: 1.5rem; opacity: 0.5;"></i>
+            <p style="color: var(--text-secondary); line-height: 1.6;">No specific plan assigned for today. Reach out to your Elite Coach to initialize your transformation routine.</p>
+        </div>
+        {% endif %}
+
+        <!-- Latest Nutrition Protocol Section -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; margin-bottom: 2rem;">
+            <h3 style="font-weight: 700; letter-spacing: 1px;">LATEST NUTRITION PROTOCOL</h3>
+            <a href="{{ url_for('view_diet_plans') }}" class="premium-btn" style="width: auto; padding: 0.6rem 1.5rem; font-size: 0.75rem; border-radius: 12px; text-decoration: none; background: rgba(0, 198, 255, 0.1); color: #00c6ff; border-color: rgba(0, 198, 255, 0.2);">VIEW ALL PROTOCOLS</a>
+        </div>
+        
+        {% if latest_diet %}
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                <div>
+                    <h4 style="color: white; font-weight: 800; margin-bottom: 0.3rem;">{{ latest_diet.plan_name.upper() }}</h4>
+                    <p style="font-size: 0.75rem; color: #00c6ff; font-weight: 700;">{{ latest_diet.description or 'STANDARD NUTRITIONAL PROTOCOL' }}</p>
+                </div>
+                <div class="brand-logo" style="width: 40px; height: 40px; background: rgba(0, 198, 255, 0.1); color: #00c6ff; border-radius: 12px;"><i class="fas fa-utensils" style="font-size: 1rem;"></i></div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div style="padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <label style="font-size: 0.55rem; font-weight: 900; color: var(--text-secondary); letter-spacing: 1.5px; text-transform: uppercase; display: block; margin-bottom: 0.5rem;">Breakfast</label>
+                    <div style="color: white; font-size: 0.8rem; line-height: 1.4;">{{ latest_diet.breakfast[:50] }}{% if latest_diet.breakfast|length > 50 %}...{% endif %}</div>
+                </div>
+                <div style="padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <label style="font-size: 0.55rem; font-weight: 900; color: var(--text-secondary); letter-spacing: 1.5px; text-transform: uppercase; display: block; margin-bottom: 0.5rem;">Lunch</label>
+                    <div style="color: white; font-size: 0.8rem; line-height: 1.4;">{{ latest_diet.lunch[:50] }}{% if latest_diet.lunch|length > 50 %}...{% endif %}</div>
+                </div>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.7rem; color: var(--text-dim); text-align: center;">Click "VIEW ALL PROTOCOLS" to see full daily schedule and snacks.</p>
+        </div>
+        {% else %}
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem; text-align: center;">
+            <i class="fas fa-apple-alt" style="font-size: 2.5rem; color: #00c6ff; margin-bottom: 1.5rem; opacity: 0.5;"></i>
+            <p style="color: var(--text-secondary); line-height: 1.6;">No nutritional protocol assigned. Consult your coach for a personalized dietary strategy.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions & Billing -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <div class="data-card" style="margin-top: 0; padding: 2.5rem;">
+            <h3 style="font-weight: 700; letter-spacing: 1px; margin-bottom: 2rem;">QUICK ACTIONS</h3>
+            <a href="{{ url_for('book_session') }}" class="premium-btn" style="width: 100%; font-size: 0.8rem; border-radius: 12px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1rem;">
+                <i class="fas fa-calendar-plus"></i> BOOK SESSION
+            </a>
+            <a href="{{ url_for('view_progress') }}" class="premium-btn" style="width: 100%; font-size: 0.8rem; border-radius: 12px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,0.05); color: white; border-color: var(--glass-border);">
+                <i class="fas fa-chart-line"></i> VIEW PROGRESS
+            </a>
+        </div>
+
+        <div class="data-card" style="margin-top: 0; padding: 2.5rem;">
+            <h3 style="font-weight: 700; letter-spacing: 1px; margin-bottom: 2rem;">BILLING</h3>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px;">CURRENT TIER</span>
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-accent); margin-top: 0.3rem;">
+                    {% if member and member.plan %}
+                        {{ member.plan.name.upper() }}
+                    {% elif member and member.status == 'Active' %}
+                        CUSTOM PLAN
+                    {% else %}
+                        PENDING APPROVAL
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 2rem;">
+                <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px;">NEXT RENEWAL</span>
+                <div style="font-size: 1.2rem; font-weight: 700; color: white; margin-top: 0.3rem;">
+                    {{ member.expiry_date.strftime('%B %d, %Y').upper() if (member and member.expiry_date) else 'N/A' }}
+                </div>
+            </div>
+
+            <a href="{{ url_for('view_payments') }}" class="premium-btn" style="width: 100%; font-size: 0.8rem; border-radius: 12px; text-decoration: none; display: block; text-align: center;">VIEW STATEMENTS</a>
+        </div>
+    </div>
+</div>
+
+<!-- Weight Update Modal -->
+<div id="weightModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+    <div class="data-card" style="width: 100%; max-width: 400px; padding: 2.5rem;">
+        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">LOG PROGRESS</h3>
+        <form action="{{ url_for('update_weight') }}" method="POST">
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.5rem;">CURRENT WEIGHT (KG)</label>
+                <input type="number" step="0.1" name="weight" value="{{ member.weight }}" required style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; color: white; font-weight: 700; outline: none;">
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" onclick="document.getElementById('weightModal').style.display='none'" class="premium-btn" style="background: rgba(255,255,255,0.05); color: white; border-color: var(--glass-border);">CANCEL</button>
+                <button type="submit" class="premium-btn">LOG WEIGHT</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Contact Directory Section -->
+<div class="data-card" style="margin-top: 3rem; padding: 2.5rem;">
+    <h3 style="font-weight: 700; letter-spacing: 1px; margin-bottom: 2rem;">SUPPORT & COACHING DIRECTORY</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+        {% for admin in admins %}
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.2rem; display: flex; align-items: center; gap: 12px;">
+            <div class="avatar" style="width: 32px; height: 32px; background: rgba(255, 122, 0, 0.1); color: var(--primary-orange); font-size: 0.75rem;">{{ admin.username[:1].upper() }}</div>
+            <div>
+                <div style="font-size: 0.85rem; font-weight: 700;">{{ admin.username.upper() }}</div>
+                <div style="font-size: 0.65rem; color: var(--primary-orange); font-weight: 800;">ADMINISTRATOR</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;"><i class="fas fa-phone" style="font-size: 0.6rem;"></i> {{ admin.phone or 'N/A' }}</div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% for trainer in trainers %}
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.2rem; display: flex; align-items: center; gap: 12px;">
+            <div class="avatar" style="width: 32px; height: 32px; background: rgba(255, 122, 0, 0.1); color: var(--text-accent); font-size: 0.75rem;">{{ trainer.full_name[:1].upper() }}</div>
+            <div>
+                <div style="font-size: 0.85rem; font-weight: 700;">{{ trainer.full_name.upper() }}</div>
+                <div style="font-size: 0.65rem; color: var(--text-accent); font-weight: 800;">ELITE COACH</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;"><i class="fas fa-phone" style="font-size: 0.6rem;"></i> {{ trainer.phone or 'N/A' }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+

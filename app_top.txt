@@ -1,0 +1,136 @@
+import os
+import io
+import random
+import string
+from datetime import datetime, timedelta, timezone
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from sqlalchemy import text
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_bcrypt import Bcrypt
+from config import Config
+from models import db, User, Member, Trainer, WorkoutPlan, Payment, MembershipPlan, Attendance, Equipment, EquipmentUsage, WeightLog, Booking, Amenity, CustomPlan, ExportLog
+import json
+from functools import wraps
+
+# Define IST offset
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def get_ist_time():
+    return datetime.now(IST).replace(tzinfo=None)
+
+app = Flask(__name__)
+app.config.from_object(Config)
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+def send_email(subject, body, to_email):
+    # Retrieve configuration from app config
+    smtp_server = app.config.get('MAIL_SERVER')
+    smtp_port = app.config.get('MAIL_PORT')
+    smtp_user = app.config.get('MAIL_USERNAME')
+    smtp_password = app.config.get('MAIL_PASSWORD')
+    sender_email = app.config.get('MAIL_DEFAULT_SENDER')
+
+    if not all([smtp_server, smtp_port, smtp_user, smtp_password, sender_email]):
+        print("Email configuration missing. Skipping email sending.")
+        return False
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_password)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+db.init_app(app)
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+def role_required(roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_authenticated or current_user.role not in roles:
+                flash('ACCESS DENIED: YOU DO NOT HAVE THE REQUIRED AUTHORIZATION LEVEL.', 'danger')
+                return redirect(url_for('login'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def trainer_shift_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.is_authenticated and current_user.role == 'trainer':
+            trainer = Trainer.query.filter_by(user_id=current_user.id).first()
+            if trainer:
+                active_shift = Attendance.query.filter_by(trainer_id=trainer.id, date=get_ist_time().date(), check_out=None).first()
+                if not active_shift:
+                    flash('SHIFT PROTOCOL: YOU MUST CHECK-IN FOR YOUR SHIFT TO ACCESS COMPLETE GYM DATA.', 'warning')
+                    return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/')
+def home():
+    return redirect(url_for('login'))
+
+@app.route('/resend_otp')
+def resend_otp():
+    user_id = session.get('pending_user_id')
+    if not user_id:
+        flash('Session expired. Please register again.', 'danger')
+        return redirect(url_for('register'))
+    
+    user = User.query.get(user_id)
+    if not user:
+        return redirect(url_for('register'))
+    
+    # Generate new OTP
+    otp = ''.join(random.choices(string.digits, k=6))
+    user.otp = otp
+    user.otp_expiry = get_ist_time() + timedelta(minutes=10)
+    db.session.commit()
+    
+    # Send OTP Email
+    subject = "Nammude Gym: New Email Verification OTP"
+    body = (f"Hello {user.username},\n\n"
+            f"Your new security verification code is: {otp}\n\n"
+            f"This code is valid for 10 minutes.\n\n"
+            f"Best Regards,\n"
+            f"Team Nammude Gym")
+    send_email(subject, body, user.email)
+    
+    flash('SECURITY PROTOCOL: A new verification code has been dispatched to your email.', 'info')
+    return redirect(url_for('verify_otp'))

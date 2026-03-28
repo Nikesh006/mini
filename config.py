@@ -1,0 +1,15 @@
+import os
+
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'gym_secret_key_123'
+    # Use DATABASE_URL from environment if available, otherwise use local gymcopy
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'mysql+mysqlconnector://root:Nikesh%402006@localhost/gymcopy'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Email configurations (Example for Gmail - User must configure)
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'nammudegym@gmail.com'
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or 'wxap ysth kktq lsgh'
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or 'nammudegym@gmail.com'

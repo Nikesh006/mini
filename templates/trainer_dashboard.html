@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if not active_session %}
+<div style="background: rgba(255, 122, 0, 0.1); border: 1px solid var(--primary-orange); border-radius: 20px; padding: 1.5rem 2.5rem; margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: center; ">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="width: 50px; height: 50px; background: var(--primary-orange); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-clock" style="color: white; font-size: 1.2rem;"></i>
+        </div>
+        <div>
+            <h4 style="font-weight: 800; color: white; margin-bottom: 4px; letter-spacing: 1px;">COACH SHIFT: PENDING CHECK-IN</h4>
+            <p style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">You must initialize your shift protocol to access elite athlete data and inventory.</p>
+        </div>
+    </div>
+    <form action="{{ url_for('mark_check_in') }}" method="POST">
+        <button type="submit" class="premium-btn" style="width: auto; padding: 0.8rem 2rem; border-radius: 12px; font-size: 0.8rem;">COMMENCE SHIFT</button>
+    </form>
+</div>
+
+<style>
+    @keyframes pulse {
+        0% { border-color: rgba(255, 122, 0, 0.2); box-shadow: 0 0 0 0 rgba(255, 122, 0, 0.1); }
+        50% { border-color: rgba(255, 122, 0, 1); box-shadow: 0 0 0 15px rgba(255, 122, 0, 0); }
+        100% { border-color: rgba(255, 122, 0, 0.2); box-shadow: 0 0 0 0 rgba(255, 122, 0, 0); }
+    }
+</style>
+{% else %}
+<div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 20px; padding: 1.2rem 2.5rem; margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="width: 40px; height: 40px; background: #10B981; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-shield-check" style="color: white; font-size: 1rem;"></i>
+        </div>
+        <div>
+            <h4 style="font-weight: 800; color: white; font-size: 0.9rem; letter-spacing: 0.5px;">SHIFT ACTIVE</h4>
+            <p style="color: #10B981; font-size: 0.7rem; font-weight: 800;">ELITE ACCESS ENABLED • STARTED AT {{ active_session.check_in.strftime('%I:%M %p') }}</p>
+        </div>
+    </div>
+    <form action="{{ url_for('mark_check_out', attendance_id=active_session.id) }}" method="POST">
+        <button type="submit" class="premium-btn" style="width: auto; padding: 0.6rem 1.5rem; border-radius: 10px; font-size: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">END SHIFT</button>
+    </form>
+</div>
+{% endif %}
+
+<div style="margin-bottom: 4rem; display: flex; justify-content: space-between; align-items: flex-end;">
+    <div>
+        <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">COACH <span>{{ trainer.full_name.upper() if trainer else current_user.username.upper() }}</span></h1>
+        <p class="dashboard-subtitle">ELITE COACHING COMMAND CENTER</p>
+    </div>
+    <div style="display: flex; gap: 15px;">
+        {% if active_session %}
+        <a href="{{ url_for('trainer_send_email') }}" class="premium-btn" style="width: auto; padding: 0.8rem 1.5rem; font-size: 0.75rem; border-radius: 12px; text-decoration: none; display: flex; align-items: center; gap: 8px; background: rgba(0, 198, 255, 0.1); border: 1px solid rgba(0, 198, 255, 0.2); color: #00c6ff;">
+            <i class="fas fa-paper-plane" style="font-size: 0.7rem;"></i> COMMUNICATION HUB
+        </a>
+        <a href="{{ url_for('edit_trainer_profile') }}" class="premium-btn" style="width: auto; padding: 0.8rem 1.5rem; font-size: 0.75rem; border-radius: 12px; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-user-edit" style="font-size: 0.7rem;"></i> EDIT PROFILE
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if active_session %}
+<div class="metrics-grid">
+    <div class="metric-card" style="">
+        <span class="metric-label">ACTIVE CLIENTS</span>
+        <div class="metric-value">{{ members|length }}</div>
+        <i class="fas fa-users" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+    <div class="metric-card" style="">
+        <span class="metric-label">DAILY SESSIONS</span>
+        <div class="metric-value">{{ records|length if records else 0 }}</div>
+        <i class="fas fa-calendar-check" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+    <div class="metric-card" style=" border-color: rgba(255, 122, 0, 0.2);">
+        <span class="metric-label">COACH STATUS</span>
+        <div class="metric-value" style="color: var(--text-accent); font-size: 2rem; margin-top: 1.5rem;">ON DUTY</div>
+        <i class="fas fa-clock" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.05; color: var(--primary-orange);"></i>
+    </div>
+    <div class="metric-card" style="">
+        <span class="metric-label">PERFORMANCE INDEX</span>
+        <div class="metric-value">9.8</div>
+        <i class="fas fa-chart-line" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-top: 3rem;">
+    <!-- Training Management -->
+    <div class="data-card" style="margin-top: 0; padding: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3 style="font-weight: 700; letter-spacing: 1px;">TRANSFORMATION MANAGEMENT</h3>
+            <a href="{{ url_for('assign_workout') }}" class="premium-btn" style="width: auto; padding: 0.7rem 2rem; font-size: 0.8rem; border-radius: 14px; text-decoration: none;">ASSIGN NEW PLAN</a>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem; text-align: center;">
+            <i class="fas fa-clipboard-list" style="font-size: 2.5rem; color: var(--primary-orange); margin-bottom: 1.5rem; opacity: 0.5;"></i>
+            <p style="color: var(--text-secondary); line-height: 1.6;">Initialize high-performance workout plans for your athletes. All transformations are logged in the secure archive.</p>
+        </div>
+    </div>
+
+    <!-- Coach Specialization -->
+    <div class="data-card" style="margin-top: 0; padding: 2.5rem;">
+        <h3 style="font-weight: 700; letter-spacing: 1px; margin-bottom: 2rem;">COACH PROFILE</h3>
+        
+        <div style="margin-bottom: 2rem;">
+            <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px;">SPECIALIZATION</span>
+            <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-accent); margin-top: 0.5rem; border-left: 3px solid var(--primary-orange); padding-left: 1rem;">
+                {{ (trainer.specialization or 'STRENGTH TRAINING').upper() }}
+            </div>
+        </div>
+
+        <div style="background: rgba(255, 122, 0, 0.05); border-radius: 16px; padding: 1.5rem; border: 1px solid rgba(255, 122, 0, 0.1);">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Your elite status allows you to manage up to 20 premium athletes simultaneously.</p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div style="text-align: center; padding: 10rem 2rem; background: rgba(2, 4, 8, 0.4); border: 1px dashed var(--glass-border); border-radius: 40px; backdrop-filter: blur(10px);">
+    <i class="fas fa-lock" style="font-size: 4rem; color: var(--primary-orange); margin-bottom: 2rem; opacity: 0.3;"></i>
+    <h2 style="font-weight: 900; letter-spacing: -1px; margin-bottom: 1rem; color: white;">ARCHIVE ACCESS RESTRICTED</h2>
+    <p style="color: var(--text-dim); font-size: 1rem; max-width: 500px; margin: 0 auto; line-height: 1.6;">Your coaching command center is currently locked. To view athlete transformations, gear inventory, and session reports, please <strong>COMMENCE YOUR SHIFT</strong> using the protocol above.</p>
+</div>
+{% endif %}
+
+<!-- Trainer Directory Section -->
+<div class="data-card" style="margin-top: 3rem; padding: 2.5rem;">
+    <h3 style="font-weight: 700; letter-spacing: 1px; margin-bottom: 2rem;">ADMIN & ATHLETE DIRECTORY</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+        {% for admin in admins %}
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="avatar" style="width: 32px; height: 32px; background: rgba(255, 122, 0, 0.1); color: var(--primary-orange); font-size: 0.75rem;">{{ admin.username[:1].upper() }}</div>
+                <div>
+                    <div style="font-size: 0.85rem; font-weight: 700;">{{ admin.username.upper() }}</div>
+                    <div style="font-size: 0.65rem; color: var(--primary-orange); font-weight: 800;">ADMINISTRATOR</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;"><i class="fas fa-phone" style="font-size: 0.6rem;"></i> {{ admin.phone or 'N/A' }}</div>
+                </div>
+            </div>
+            <a href="{{ url_for('trainer_send_email', email=admin.email) }}" style="color: var(--text-secondary); opacity: 0.5; transition: 0.3s;" onmouseover="this.style.opacity=1; this.style.color='#00c6ff';" onmouseout="this.style.opacity=0.5; this.style.color='var(--text-secondary)';">
+                <i class="fas fa-envelope"></i>
+            </a>
+        </div>
+        {% endfor %}
+        
+        {% if active_session %}
+        {% for member in members %}
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="avatar" style="width: 32px; height: 32px; background: rgba(255,255,255,0.03); color: var(--text-accent); font-size: 0.75rem;">{{ member.full_name[:1].upper() }}</div>
+                <div>
+                    <div style="font-size: 0.85rem; font-weight: 700;">{{ member.full_name.upper() }}</div>
+                    <div style="font-size: 0.65rem; color: var(--text-dim); font-weight: 800;">ATHLETE</div>
+                    <div style="display: flex; gap: 10px; margin-top: 6px;">
+                        <a href="{{ url_for('view_progress', user_id=member.user_id) }}" style="color: #10B981; font-size: 0.6rem; font-weight: 800; text-decoration: none; letter-spacing: 0.5px;"><i class="fas fa-chart-line"></i> PROGRESS</a>
+                        <a href="{{ url_for('download_progress', member_id=member.id) }}" style="color: var(--text-secondary); font-size: 0.6rem; font-weight: 800; text-decoration: none; letter-spacing: 0.5px;"><i class="fas fa-file-pdf"></i> PDF</a>
+                    </div>
+                </div>
+            </div>
+            <a href="{{ url_for('trainer_send_email', email=member.user.email) }}" style="color: var(--text-secondary); opacity: 0.5; transition: 0.3s;" onmouseover="this.style.opacity=1; this.style.color='#00c6ff';" onmouseout="this.style.opacity=0.5; this.style.color='var(--text-secondary)';">
+                <i class="fas fa-envelope"></i>
+            </a>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p style="grid-column: 1/-1; text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 2rem;">[ ATHLETE LIST HIDDEN DUE TO INACTIVE SHIFT ]</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

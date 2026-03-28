@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; display: flex; justify-content: space-between; align-items: flex-end; ">
+    <div>
+        <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">ATTENDANCE <span>TRACKER</span></h1>
+        <p class="dashboard-subtitle">SECURE ACCESS & PROTOCOL LOGGING</p>
+    </div>
+    
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <form action="{{ url_for('attendance') }}" method="GET" id="date-filter-form" style="display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 0.5rem 1.2rem; border-radius: 14px;">
+            <label style="color: var(--text-dim); font-size: 0.65rem; font-weight: 800; letter-spacing: 1px;">FILTER BY DATE</label>
+            <div style="position: relative; display: flex; align-items: center; gap: 8px;">
+                <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" style="background: transparent; border: none; color: white; font-weight: 800; font-size: 0.85rem; font-family: inherit; color-scheme: dark; outline: none; cursor: pointer;">
+                <i class="fas fa-calendar-alt" style="color: var(--primary-orange); font-size: 0.8rem; pointer-events: none;"></i>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if current_user.role in ['admin', 'trainer'] %}
+<div class="data-card" style="margin-bottom: 3rem; padding: 2.5rem; background: var(--glass-card); ">
+    <h3 style="font-weight: 700; margin-bottom: 2rem; color: var(--text-accent); font-size: 1rem; letter-spacing: 1px;">LOG SESSION</h3>
+    <form action="{{ url_for('mark_check_in') }}" method="POST" style="display: flex; gap: 1.5rem; align-items: flex-end;">
+        <div style="flex-grow: 1;">
+            <label style="color: var(--text-secondary); font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 0.8rem; text-transform: uppercase;">SELECT ATHLETE FOR CHECK-IN</label>
+            <select name="member_id" class="premium-input" required>
+                {% for m in members %}
+                    <option value="{{ m.id }}">{{ m.full_name.upper() }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="premium-btn" style="width: auto; padding: 1.1rem 2.5rem; border-radius: 14px;">CHECK-IN ATHLETE</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="data-card" style="">
+    <div class="table-header">
+        <h3 style="font-weight: 700; letter-spacing: 1px;">SESSION LOGS</h3>
+        <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">{{ records|length }} TOTAL ENTRIES DISCOVERED</span>
+    </div>
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>DATE</th>
+                <th>ATHLETE</th>
+                <th>CHECK IN</th>
+                <th>CHECK OUT</th>
+                <th>DURATION</th>
+                <th>STATUS</th>
+                {% if current_user.role in ['admin', 'trainer'] %}
+                <th style="text-align: right;">ACTION</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td style="color: white; font-weight: 700;">{{ record.date.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <span style="color: var(--text-accent); font-weight: 800; font-size: 0.85rem;">
+                        {% if record.member %}
+                            {{ record.member.full_name.upper() }}
+                        {% elif record.trainer %}
+                            {{ record.trainer.full_name.upper() }} (COACH)
+                        {% else %}
+                            UNKNOWN
+                        {% endif %}
+                    </span>
+                </td>
+                <td style="color: var(--text-secondary); font-weight: 600;">{{ record.check_in.strftime('%I:%M %p') }}</td>
+                <td style="color: var(--text-secondary); font-weight: 600;">
+                    {{ record.check_out.strftime('%I:%M %p') if record.check_out else '--' }}
+                </td>
+                <td style="color: white; font-weight: 700;">
+                    {% if record.check_out %}
+                        {% set diff = record.check_out - record.check_in %}
+                        {% set hours = (diff.total_seconds() // 3600) | int %}
+                        {% set minutes = ((diff.total_seconds() % 3600) // 60) | int %}
+                        {% set seconds = (diff.total_seconds() % 60) | int %}
+                        {{ hours }}h {{ minutes }}m {{ seconds }}s
+                    {% else %}
+                        <span style="color: var(--primary-orange); ">IN SESSION</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.check_out %}
+                        <span style="background: rgba(16, 185, 129, 0.1); color: #10B981; padding: 4px 12px; border-radius: 50px; font-size: 0.65rem; font-weight: 800; border: 1px solid rgba(16, 185, 129, 0.2);">COMPLETED</span>
+                    {% else %}
+                        <span style="background: rgba(255, 122, 0, 0.1); color: var(--primary-orange); padding: 4px 12px; border-radius: 50px; font-size: 0.65rem; font-weight: 800; border: 1px solid rgba(255, 122, 0, 0.2);">ACTIVE</span>
+                    {% endif %}
+                </td>
+                {% if current_user.role in ['admin', 'trainer'] %}
+                <td style="text-align: right;">
+                    {% if not record.check_out %}
+                    <form action="{{ url_for('mark_check_out', attendance_id=record.id) }}" method="POST">
+                        <button type="submit" style="background: #ff4d4d; color: white; border: none; padding: 6px 16px; border-radius: 50px; font-size: 0.65rem; font-weight: 800; cursor: pointer; transition: 0.3s; box-shadow: 0 0 10px rgba(255, 77, 77, 0.2);">CHECK-OUT</button>
+                    </form>
+                    {% else %}
+                    <span style="color: var(--text-dim); font-size: 0.65rem; font-weight: 800;">CLOSED</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="padding: 4rem; text-align: center; color: var(--text-secondary);">
+                    <i class="fas fa-clock" style="font-size: 2.5rem; opacity: 0.2; display: block; margin-bottom: 1.5rem;"></i>
+                    NO SESSION LOGS DISCOVERED IN THE ARCHIVE
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

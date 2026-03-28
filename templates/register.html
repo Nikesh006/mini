@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-card" style="width: 520px;">
+    <h2 class="typing-text" style="font-size: 3rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 0.5rem;">ONBOARDING</h2>
+    <p style="color: var(--text-dim); margin-bottom: 3.5rem; font-size: 0.85rem; font-weight: 600; letter-spacing: 2px; opacity: 0; ">JOIN ELITE NETWORK</p>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <div style="margin-bottom: 2rem; text-align: center;">
+            <label for="profile_pic" style="cursor: pointer; display: inline-block;">
+                <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.03); border: 2px dashed var(--glass-border); border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s;" id="pic-preview">
+                    <i class="fas fa-camera" style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 3px;"></i>
+                    <span style="font-size: 0.4rem; font-weight: 800; color: var(--text-dim); letter-spacing: 1px;">PHOTO</span>
+                </div>
+            </label>
+            <input type="file" id="profile_pic" name="profile_pic" style="display: none;" onchange="previewImage(this)">
+        </div>
+
+        <div style="text-align: left; margin-bottom: 0.5rem;">
+            <label for="username" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">ATHLETE ID (LOGIN)</label>
+        </div>
+        <input type="text" id="username" name="username" class="premium-input" required placeholder="CHOOSE ID" value="{{ form_data.get('username', '') }}">
+        
+        <div style="text-align: left; margin-bottom: 0.5rem;">
+            <label for="email" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">EMAIL ADDRESS</label>
+        </div>
+        <input type="email" id="email" name="email" class="premium-input" required placeholder="SECURE EMAIL" value="{{ form_data.get('email', '') }}">
+        
+        <div style="text-align: left; margin-bottom: 0.5rem;">
+            <label for="phone" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">MOBILE NUMBER</label>
+        </div>
+        <input type="tel" id="phone" name="phone" class="premium-input" required placeholder="10-DIGIT MOBILE NUMBER" pattern="[0-9]{10}" maxlength="10" title="Please enter exactly 10 digits" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="{{ form_data.get('phone', '') }}">
+
+        <div style="text-align: left; margin-bottom: 0.5rem;">
+            <label for="gym_id" id="gym-id-label" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">GYM ID</label>
+        </div>
+        <input type="text" id="gym_id" name="gym_id" class="premium-input" required placeholder="ENTER GYM ID" style="text-transform: uppercase;" value="{{ form_data.get('gym_id', '') }}">
+        <p id="gym-id-help" style="color: var(--text-dim); font-size: 0.72rem; line-height: 1.5; margin-top: -0.4rem; margin-bottom: 1.2rem; text-align: left; padding: 0 0.5rem;">
+            Use the Gym ID provided by your admin.
+        </p>
+        
+        <div id="dob-field" style="text-align: left; margin-bottom: 0.5rem;">
+            <label for="dob" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">DATE OF BIRTH</label>
+        </div>
+        <input type="date" id="dob" name="dob" class="premium-input" required onchange="calculateAge(this.value)" value="{{ form_data.get('dob', '') }}">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1.2rem;">
+            <div id="age-field">
+                <div style="text-align: left; margin-bottom: 0.5rem;">
+                    <label for="age" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">AGE (AUTO)</label>
+                </div>
+                <input type="number" id="age" name="age" class="premium-input" required placeholder="YOUR AGE" min="1" max="120" style="margin-bottom: 0;" readonly value="{{ form_data.get('age', '') }}">
+            </div>
+            <div id="gender-field">
+                <div style="text-align: left; margin-bottom: 0.5rem;">
+                    <label for="gender" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">GENDER</label>
+                </div>
+                <select id="gender" name="gender" class="premium-input" required style="cursor: pointer; margin-bottom: 0; padding-top: 0; padding-bottom: 0; height: 58px;">
+                    <option value="male" {% if form_data.get('gender', 'male') == 'male' %}selected{% endif %}>MALE</option>
+                    <option value="female" {% if form_data.get('gender') == 'female' %}selected{% endif %}>FEMALE</option>
+                    <option value="other" {% if form_data.get('gender') == 'other' %}selected{% endif %}>OTHER</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="text-align: left; margin-bottom: 0.5rem;">
+            <label for="password" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">SECURE PASSCODE</label>
+        </div>
+        <div style="position: relative;">
+            <input type="password" id="password" name="password" class="premium-input" required placeholder="STRONG PASSCODE" value="{{ form_data.get('password', '') }}">
+            <i class="fas fa-eye" id="togglePassword" style="position: absolute; right: 20px; top: 18px; cursor: pointer; color: var(--text-dim); transition: 0.3s;" onclick="togglePasswordVisibility()"></i>
+        </div>
+        
+        <div style="text-align: left; margin-bottom: 0.5rem; margin-top: 1.2rem;">
+            <label for="role" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">SELECT ROLE</label>
+        </div>
+        <select name="role" id="role" class="premium-input" required style="cursor: pointer;" onchange="toggleExperience()">
+            <option value="user" {% if form_data.get('role', 'user') == 'user' %}selected{% endif %}>ATHLETE (MEMBER)</option>
+            <option value="trainer" {% if form_data.get('role') == 'trainer' %}selected{% endif %}>ELITE COACH (MASTER)</option>
+            <option value="admin" {% if form_data.get('role') == 'admin' %}selected{% endif %}>DIRECTOR (ADMIN)</option>
+        </select>
+        
+        <div id="trainer-fields" style="display: none; ">
+            <input type="text" name="specialization" class="premium-input" placeholder="SPECIALIZATION (e.g., STRENGTH TRAINING)" value="{{ form_data.get('specialization', '') }}">
+            <input type="number" name="experience" class="premium-input" placeholder="YEARS OF EXPERIENCE" min="0" value="{{ form_data.get('experience', '') }}">
+        </div>
+
+        <div id="member-fields" style="display: block;  margin-bottom: 1.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1.5rem;">
+                <input type="number" step="0.1" name="height" class="premium-input" placeholder="HEIGHT (CM)" style="margin-bottom: 0;" value="{{ form_data.get('height', '') }}">
+                <input type="number" step="0.1" name="weight" class="premium-input" placeholder="WEIGHT (KG)" style="margin-bottom: 0;" value="{{ form_data.get('weight', '') }}">
+            </div>
+            
+            <label style="color: var(--text-secondary); font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">SELECT WORKOUT DAYS</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+                <label style="cursor: pointer;">
+                    <input type="checkbox" name="workout_days" value="{{ day }}" style="display: none;" onchange="this.parentElement.style.background = this.checked ? 'rgba(255, 122, 0, 0.2)' : 'rgba(255,255,255,0.03)'; this.parentElement.style.borderColor = this.checked ? 'var(--primary-orange)' : 'var(--glass-border)';" {% if day in form_data.get('workout_days', []) %}checked{% endif %}>
+                    <div style="padding: 8px 12px; border: 1px solid var(--glass-border); border-radius: 10px; background: {% if day in form_data.get('workout_days', []) %}rgba(255, 122, 0, 0.2){% else %}rgba(255,255,255,0.03){% endif %}; font-size: 0.75rem; font-weight: 700; transition: 0.3s; color: white; border-color: {% if day in form_data.get('workout_days', []) %}var(--primary-orange){% else %}var(--glass-border){% endif %};">{{ day.upper() }}</div>
+                </label>
+                {% endfor %}
+            </div>
+
+            <label style="color: var(--text-secondary); font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase;">SELECT MEMBERSHIP TIER (OPTIONAL)</label>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <label style="cursor: pointer; display: block;">
+                    <input type="radio" name="plan_id" value="" style="display: none;" onchange="updatePlanSelection(this)" {% if form_data.get('plan_id', '') == '' %}checked{% endif %}>
+                    <div class="plan-card" style="padding: 1.2rem; border: 1px solid {% if form_data.get('plan_id', '') == '' %}var(--primary-orange){% else %}var(--glass-border){% endif %}; border-radius: 16px; background: {% if form_data.get('plan_id', '') == '' %}rgba(255, 122, 0, 0.1){% else %}rgba(255,255,255,0.02){% endif %}; transition: 0.3s; text-align: left; position: relative; overflow: hidden;{% if form_data.get('plan_id', '') == '' %} transform: scale(1.02);{% endif %}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 800; font-size: 0.9rem; color: white;">NO PLAN / DECIDE LATER</span>
+                            <span style="font-weight: 900; color: var(--text-dim);">0 DAYS</span>
+                        </div>
+                        <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 5px; line-height: 1.4;">
+                            Browse plans after registration with zero-day validity until a membership plan is selected
+                        </div>
+                    </div>
+                </label>
+                {% for plan in plans %}
+                <label style="cursor: pointer; display: block;">
+                    <input type="radio" name="plan_id" value="{{ plan.id }}" style="display: none;" onchange="updatePlanSelection(this)" {% if form_data.get('plan_id') == (plan.id|string) %}checked{% endif %}>
+                    <div class="plan-card" style="padding: 1.2rem; border: 1px solid {% if form_data.get('plan_id') == (plan.id|string) %}var(--primary-orange){% else %}var(--glass-border){% endif %}; border-radius: 16px; background: {% if form_data.get('plan_id') == (plan.id|string) %}rgba(255, 122, 0, 0.1){% else %}rgba(255,255,255,0.02){% endif %}; transition: 0.3s; text-align: left; position: relative; overflow: hidden;{% if form_data.get('plan_id') == (plan.id|string) %} transform: scale(1.02);{% endif %}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 800; font-size: 0.9rem; color: white;">{{ plan.name.upper() }}</span>
+                            <span style="font-weight: 900; color: var(--primary-orange);">₹{{ plan.price }}</span>
+                        </div>
+                        <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 5px; line-height: 1.4;">
+                            {{ plan.features }}
+                        </div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <script>
+            function updatePlanSelection(radio) {
+                const cards = document.querySelectorAll('.plan-card');
+                cards.forEach(card => {
+                    card.style.background = 'rgba(255,255,255,0.02)';
+                    card.style.borderColor = 'var(--glass-border)';
+                    card.style.transform = 'scale(1)';
+                });
+                const selectedCard = radio.nextElementSibling;
+                selectedCard.style.background = 'rgba(255, 122, 0, 0.1)';
+                selectedCard.style.borderColor = 'var(--primary-orange)';
+                selectedCard.style.transform = 'scale(1.02)';
+            }
+        </script>
+
+        <button type="submit" class="premium-btn" style="margin-top: 1.5rem;">REGISTER</button>
+    </form>
+    
+    <div style="margin-top: 3rem; border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+        <p style="color: var(--text-dim); font-size: 0.8rem; font-weight: 600; letter-spacing: 1px;">ALREADY REGISTERED? <a href="{{ url_for('login') }}" class="circle-transition-link" style="color: var(--primary-orange); text-decoration: none; border-bottom: 1px solid var(--primary-orange);">LOGIN</a></p>
+    </div>
+</div>
+
+<script>
+    function toggleExperience() {
+        const role = document.getElementById('role').value;
+        const trainerField = document.getElementById('trainer-fields');
+        const memberField = document.getElementById('member-fields');
+        const planRadios = document.querySelectorAll('input[name="plan_id"]');
+        const dobFieldLabel = document.getElementById('dob-field');
+        const dobInput = document.getElementById('dob');
+        const ageField = document.getElementById('age-field');
+        const ageInput = document.getElementById('age');
+        const ageLabel = document.querySelector('label[for="age"]');
+        const genderField = document.getElementById('gender-field');
+        const genderInput = document.getElementById('gender');
+        const gymIdLabel = document.getElementById('gym-id-label');
+        const gymIdInput = document.getElementById('gym_id');
+        const gymIdHelp = document.getElementById('gym-id-help');
+        
+        if (role === 'trainer') {
+            trainerField.style.display = 'block';
+            memberField.style.display = 'none';
+            planRadios.forEach(r => r.required = false);
+            dobFieldLabel.style.display = 'block';
+            dobInput.style.display = 'block';
+            dobInput.required = true;
+            ageField.style.display = 'block';
+            ageInput.required = true;
+            ageInput.readOnly = true;
+            ageInput.placeholder = 'YOUR AGE';
+            ageLabel.textContent = 'AGE (AUTO)';
+            genderField.style.display = 'block';
+            genderInput.required = true;
+            gymIdLabel.textContent = 'GYM ID';
+            gymIdInput.placeholder = 'ENTER EXISTING GYM ID';
+            gymIdHelp.textContent = 'Trainer registration is allowed only under an existing admin Gym ID.';
+        } else if (role === 'user') {
+            trainerField.style.display = 'none';
+            memberField.style.display = 'block';
+            planRadios.forEach(r => r.required = true);
+            dobFieldLabel.style.display = 'block';
+            dobInput.style.display = 'block';
+            dobInput.required = true;
+            ageField.style.display = 'block';
+            ageInput.required = true;
+            ageInput.readOnly = true;
+            ageInput.placeholder = 'YOUR AGE';
+            ageLabel.textContent = 'AGE (AUTO)';
+            genderField.style.display = 'block';
+            genderInput.required = true;
+            gymIdLabel.textContent = 'GYM ID';
+            gymIdInput.placeholder = 'ENTER EXISTING GYM ID';
+            gymIdHelp.textContent = 'Member registration is allowed only under an existing admin Gym ID.';
+        } else {
+            trainerField.style.display = 'none';
+            memberField.style.display = 'none';
+            planRadios.forEach(r => r.required = false);
+            dobFieldLabel.style.display = 'none';
+            dobInput.style.display = 'none';
+            dobInput.required = false;
+            dobInput.value = '';
+            ageField.style.display = 'block';
+            ageInput.required = false;
+            ageInput.readOnly = false;
+            ageInput.placeholder = 'ADMIN AGE';
+            ageLabel.textContent = 'AGE';
+            genderField.style.display = 'none';
+            genderInput.required = false;
+            genderInput.value = 'male';
+            gymIdLabel.textContent = 'NEW GYM ID';
+            gymIdInput.placeholder = 'CREATE NEW GYM ID';
+            gymIdHelp.textContent = 'Only admins can create a new Gym ID. This Gym ID will be used by trainers and members for future registration.';
+        }
+    }
+
+    function previewImage(input) {
+        const preview = document.getElementById('pic-preview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.style.backgroundImage = `url(${e.target.result})`;
+                preview.style.backgroundSize = 'cover';
+                preview.style.backgroundPosition = 'center';
+                preview.style.borderStyle = 'solid';
+                preview.style.borderColor = 'var(--primary-orange)';
+                preview.innerHTML = '';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function calculateAge(dobString) {
+        if (!dobString) return;
+        const dob = new Date(dobString);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const monthDiff = today.getMonth() - dob.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        document.getElementById('age').value = age;
+    }
+
+    toggleExperience();
+</script>
+{% endblock %}
+

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 3rem; ">
+    <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">TRANSFORMATION <span>ARCHITECT</span></h1>
+    <p class="dashboard-subtitle">DESIGNING ELITE PERFORMANCE ROUTINES</p>
+</div>
+
+<div style="">
+    <form method="POST" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
+        <!-- Left Pane: Selection -->
+        <div class="data-card" style="margin-top: 0; padding: 3rem; height: fit-content; background: var(--glass-card);">
+            <h3 style="font-weight: 700; margin-bottom: 2rem; color: var(--text-accent); font-size: 1.1rem; letter-spacing: 1px;">ATHLETE SELECTION</h3>
+            
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Target Athlete</label>
+                <select name="member_id" id="member_id" class="premium-input" required style="cursor: pointer;" onchange="updateMemberSchedule()">
+                    <option value="" disabled selected>CHOOSE AN ATHLETE</option>
+                    {% for member in members %}
+                        <option value="{{ member.id }}" data-schedule="{{ member.workout_days or 'NOT SET' }}">{{ member.full_name.upper() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.6rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 0.5rem; text-transform: uppercase;">Athlete's Schedule</label>
+                <div id="athlete-schedule" style="font-size: 0.85rem; color: var(--primary-orange); font-weight: 700; letter-spacing: 1px;">- SELECT AN ATHLETE -</div>
+            </div>
+
+            <div style="background: rgba(255, 122, 0, 0.05); border-radius: 20px; padding: 1.5rem; border: 1px solid rgba(255, 122, 0, 0.1);">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">Design the transformation protocol based on the athlete's preferred active days.</p>
+            </div>
+        </div>
+
+        <script>
+            function updateMemberSchedule() {
+                const select = document.getElementById('member_id');
+                const selectedOption = select.options[select.selectedIndex];
+                const scheduleDiv = document.getElementById('athlete-schedule');
+                const schedule = selectedOption.getAttribute('data-schedule');
+                scheduleDiv.textContent = schedule ? schedule.toUpperCase() : 'NO SCHEDULE SET';
+            }
+        </script>
+
+        <!-- Right Pane: Details -->
+        <div class="data-card" style="margin-top: 0; padding: 3rem; background: var(--glass-card);">
+            <h3 style="font-weight: 700; margin-bottom: 2rem; color: var(--text-accent); font-size: 1.1rem; letter-spacing: 1px;">PLAN CONSTRUCTION</h3>
+            
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Protocol Name</label>
+                <input type="text" id="plan_name" name="plan_name" class="premium-input" required placeholder="e.g., HYPERTROPHY ALPHA">
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">TARGET DAY</label>
+                <select name="day" id="day" class="premium-input" required style="cursor: pointer;">
+                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                        <option value="{{ day }}">{{ day.upper() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 2.5rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Exercise Regimen</label>
+                <textarea id="exercises" name="exercises" rows="10" class="premium-input" required placeholder="LIST EXERCISES, SETS, REPS, AND REST INTERVALS..." style="resize: none; line-height: 1.6;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <button type="submit" class="premium-btn" style="flex-grow: 1;">INITIALIZE PROTOCOL</button>
+                <a href="{{ url_for('view_workouts') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;">DISCARD CHANGES</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

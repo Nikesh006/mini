@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 3.5rem; ">
+    <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">FINANCIAL <span>ARCHITECT</span></h1>
+    <p class="dashboard-subtitle">SECURE PAYMENT PROTOCOL INITIALIZATION</p>
+</div>
+
+<div style="display: flex; justify-content: center; ">
+    <div class="data-card" style="width: 550px; padding: 4rem; background: var(--glass-card);">
+        <h3 style="font-weight: 700; margin-bottom: 2.5rem; color: var(--text-accent); font-size: 1.1rem; letter-spacing: 1px;">TRANSACTION DETAILS</h3>
+        
+        <form method="POST">
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">SELECT ATHLETE</label>
+                <select name="member_id" id="member_id" class="premium-input" required style="cursor: pointer;">
+                    {% for member in members %}
+                        <option value="{{ member.id }}">{{ member.full_name.upper() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 3rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">AMOUNT (INR)</label>
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 1.2rem; top: 1.1rem; color: var(--text-secondary); font-weight: 600;">₹</span>
+                    <input type="number" step="0.01" id="amount" name="amount" class="premium-input" required placeholder="0.00" style="padding-left: 2.5rem;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 2rem; align-items: center; margin-top: 2rem;">
+                <button type="submit" class="premium-btn" style="flex-grow: 1;">RECORD TRANSACTION</button>
+                <a href="{{ url_for('view_payments') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;">DISCARD</a>
+            </div>
+        </form>
+
+        <div style="margin-top: 3rem; background: rgba(255, 122, 0, 0.05); border-radius: 20px; padding: 1.5rem; border: 1px solid rgba(255, 122, 0, 0.1);">
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6; text-align: center;">
+                <i class="fas fa-shield-alt" style="margin-right: 8px; color: var(--primary-orange);"></i> 
+                All financial data is encrypted and recorded in the secure system ledger. Recording a payment will automatically set the member's validity to 1 year from now.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

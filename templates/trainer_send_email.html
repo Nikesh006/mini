@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 3.5rem; ">
+    <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">COMMUNICATION <span>HUB</span></h1>
+    <p class="dashboard-subtitle">DISPATCH DIRECTIVE TO ATHLETES OR ADMINS</p>
+</div>
+
+<div style="display: flex; justify-content: center; ">
+    <div class="data-card" style="width: 750px; padding: 4rem; background: var(--glass-card);">
+        <form method="POST">
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">SELECT RECIPIENT</label>
+                <select name="recipient_email" class="premium-input" required style="width: 100%; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-7.4H18.4c-5%200-10%202-13.2%205.8a17.4%2017.4%200%200%200-3.3%2015.3%2017.3%2017.3%200%200%200%205.7%2010.3L125%20285.1a17.5%2017.5%200%200%200%2024.8%200L287%2093c4.4-5%206.2-11.5%204.8-18a17.6%2017.6%200%200%200-4.8-5.6z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right%201rem%20top%2050%3B background-size: .65rem%20auto;">
+                    <option value="" disabled {% if not target_email %}selected{% endif %}>CHOOSE ATHLETE OR ADMINISTRATOR</option>
+                    
+                    <optgroup label="ADMINISTRATORS" style="background: #1a1a1a; color: var(--primary-orange);">
+                        {% for admin in admins %}
+                        <option value="{{ admin.email }}" {% if target_email == admin.email %}selected{% endif %}>{{ admin.username.upper() }} (ADMIN)</option>
+                        {% endfor %}
+                    </optgroup>
+                    
+                    <optgroup label="ATHLETES" style="background: #1a1a1a; color: white;">
+                        {% for member in members %}
+                        <option value="{{ member.user.email }}" {% if target_email == member.user.email %}selected{% endif %}>{{ member.full_name.upper() }} ({{ member.user.username.upper() }})</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">SUBJECT</label>
+                <input type="text" name="subject" class="premium-input" placeholder="URGENT: TRAINING UPDATE / SESSION ALERT" required>
+            </div>
+
+            <div style="margin-bottom: 3rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">DIRECTIVE MESSAGE</label>
+                <textarea name="message" class="premium-input" style="height: 200px; resize: none; padding: 1.5rem; line-height: 1.6;" placeholder="COMPOSE YOUR ELITE COACHING DIRECTIVE HERE..." required></textarea>
+            </div>
+
+            <div style="display: flex; gap: 2rem; align-items: center; margin-top: 3rem;">
+                <button type="submit" class="premium-btn" style="flex-grow: 1; padding: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                    <i class="fas fa-paper-plane" style="font-size: 0.9rem;"></i> DISPATCH COMMUNICATION
+                </button>
+                <a href="{{ url_for('dashboard') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;">ABORT</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

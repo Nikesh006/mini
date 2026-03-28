@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 3rem; ">
+    <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">NUTRITION <span>ARCHITECT</span></h1>
+    <p class="dashboard-subtitle">DESIGNING ELITE DIETARY PROTOCOLS</p>
+</div>
+
+<div style="">
+    <form method="POST" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+        <!-- Left Pane: Selection -->
+        <div class="data-card" style="margin-top: 0; padding: 3rem; height: fit-content; background: var(--glass-card);">
+            <h3 style="font-weight: 700; margin-bottom: 2rem; color: #00c6ff; font-size: 1.1rem; letter-spacing: 1px;">ATHLETE SELECTION</h3>
+            
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Target Athlete</label>
+                <select name="member_id" id="member_id" class="premium-input" required style="cursor: pointer;">
+                    <option value="" disabled selected>CHOOSE AN ATHLETE</option>
+                    {% for member in members %}
+                        <option value="{{ member.id }}">{{ member.full_name.upper() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="background: rgba(0, 198, 255, 0.05); border-radius: 20px; padding: 1.5rem; border: 1px solid rgba(0, 198, 255, 0.1);">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">Design a nutritional protocol tailored to the athlete's metabolic requirements. An email notification will be dispatched upon activation.</p>
+            </div>
+        </div>
+
+        <!-- Right Pane: Details -->
+        <div class="data-card" style="margin-top: 0; padding: 3rem; background: var(--glass-card);">
+            <h3 style="font-weight: 700; margin-bottom: 2rem; color: #00c6ff; font-size: 1.1rem; letter-spacing: 1px;">PLAN CONSTRUCTION</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Protocol Name</label>
+                    <input type="text" id="plan_name" name="plan_name" class="premium-input" required placeholder="e.g., BULKING ALPHA">
+                </div>
+                <div>
+                    <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Short Description</label>
+                    <input type="text" id="description" name="description" class="premium-input" placeholder="e.g., HIGH PROTEIN, MODERATE CARB">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Breakfast Protocol</label>
+                    <textarea name="breakfast" rows="4" class="premium-input" required placeholder="e.g., 6 Egg Whites, 100g Oats..." style="resize: none;"></textarea>
+                </div>
+                <div>
+                    <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Lunch Protocol</label>
+                    <textarea name="lunch" rows="4" class="premium-input" required placeholder="e.g., 200g Chicken, 150g Rice..." style="resize: none;"></textarea>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2.5rem;">
+                <div>
+                    <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Dinner Protocol</label>
+                    <textarea name="dinner" rows="4" class="premium-input" required placeholder="e.g., 150g Fish, Mixed Greens..." style="resize: none;"></textarea>
+                </div>
+                <div>
+                    <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">Snacks / Supplements</label>
+                    <textarea name="snacks" rows="4" class="premium-input" placeholder="e.g., Whey Isolate, Handful of Almonds..." style="resize: none;"></textarea>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <button type="submit" class="premium-btn" style="flex-grow: 1; background: linear-gradient(135deg, #00c6ff, #0072ff);">INITIALIZE NUTRITION PROTOCOL</button>
+                <a href="{{ url_for('view_diet_plans') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;">DISCARD CHANGES</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">PAYMENT <span>LEDGER</span></h1>
+            <p class="dashboard-subtitle">FINANCIAL TRANSACTION ARCHIVE</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: flex-end;">
+            {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('add_payment') }}" class="premium-btn" style="width: auto; height: 45px; padding: 0 1.5rem; text-decoration: none; display: flex; align-items: center; gap: 10px; border-radius: 12px; font-size: 0.8rem;">
+                    <i class="fas fa-plus-circle"></i> <span>RECORD PAYMENT</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if current_user.role == 'user' %}
+    
+    {% set member = current_user.member_profile[0] if current_user.member_profile else None %}
+    {% if member and member.pending_plan_id %}
+    <!-- Pending Approval Alert -->
+    <div class="data-card" style="margin-top: 2rem; border-color: var(--primary-orange); background: rgba(255, 122, 0, 0.05); padding: 1.5rem; display: flex; align-items: center; gap: 20px;">
+        <div style="width: 50px; height: 50px; background: rgba(255, 122, 0, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <i class="fas fa-hourglass-half" style="color: var(--primary-orange); font-size: 1.2rem;"></i>
+        </div>
+        <div>
+            <h4 style="color: white; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px;">PENDING PROTOCOL APPROVAL</h4>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">Your request for the <strong>{{ member.pending_plan.name.upper() }}</strong> protocol is currently being reviewed by the executive board. You will receive an email notification once authorized.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Membership Plan Selection for Members -->
+    <div class="data-card" style="margin-top: 2rem; padding: 2.5rem; background: linear-gradient(135deg, rgba(255, 122, 0, 0.05) 0%, transparent 100%);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h3 style="font-weight: 800; letter-spacing: 1px; color: white; margin-bottom: 0.5rem;">UPGRADE YOUR PERFORMANCE TIER</h3>
+                <p style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">SELECT A NEW PROTOCOL TO INITIALIZE TRANSFORMATION</p>
+            </div>
+            <div class="brand-logo" style="width: 50px; height: 50px;"><i class="fas fa-crown"></i></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+            {% for plan in plans %}
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem; display: flex; flex-direction: column; transition: var(--transition-pro); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--primary-orange); opacity: 0.03; border-radius: 50%;"></div>
+                
+                <h4 style="color: var(--primary-orange); font-weight: 900; letter-spacing: 1px; margin-bottom: 0.5rem;">{{ plan.name.upper() }}</h4>
+                <div style="font-size: 2rem; font-weight: 900; color: white; margin-bottom: 1.5rem;">₹{{ "%.0f"|format(plan.price) }} <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600;">/ {{ plan.duration_days }} DAYS</span></div>
+                
+                <ul style="list-style: none; margin-bottom: 2rem; flex-grow: 1;">
+                    {% if plan.features %}
+                        {% for feature in plan.features.split(',') %}
+                        <li style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-check-circle" style="color: #10B981; font-size: 0.75rem;"></i> {{ feature.strip() }}
+                        </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+
+                <form action="{{ url_for('update_membership') }}" method="POST">
+                    <input type="hidden" name="plan_id" value="{{ plan.id }}">
+                    <button type="submit" class="premium-btn" style="width: 100%; border-radius: 12px; font-weight: 900; letter-spacing: 1px;">
+                        SELECT PROTOCOL
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="data-card" style="margin-top: 2rem; overflow: hidden;">
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th>TRANSACTION ID</th>
+                    {% if current_user.role == 'admin' %}
+                        <th>ATHLETE</th>
+                    {% endif %}
+                    <th>AMOUNT</th>
+                    <th>DATE RECORDED</th>
+                    <th>STATUS</th>
+                    <th style="text-align: right;">INVOICE</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                    <tr>
+                        <td style="color: var(--text-secondary); font-size: 0.8rem;">#INV-{{ "%04d"|format(payment.id) }}</td>
+                        {% if current_user.role == 'admin' %}
+                            <td style="color: white; font-weight: 700;">{{ payment.member.full_name if payment.member else 'ID: ' ~ payment.member_id }}</td>
+                        {% endif %}
+                        <td style="color: var(--text-accent); font-weight: 800; font-size: 1.1rem;">₹{{ "%.2f"|format(payment.amount) }}</td>
+                        <td style="color: var(--text-secondary);">{{ payment.payment_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <span style="background: rgba(255, 122, 0, 0.1); color: var(--primary-orange); padding: 0.4rem 1rem; border-radius: 12px; font-size: 0.75rem; font-weight: 800; border: 1px solid rgba(255, 122, 0, 0.2);">
+                                {{ payment.status.upper() }}
+                            </span>
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="{{ url_for('download_invoice', payment_id=payment.id) }}" style="color: var(--primary-orange); text-decoration: none; font-size: 1.2rem; transition: 0.3s;" title="Download PDF Invoice">
+                                <i class="fas fa-file-download"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 4rem; text-align: center; color: var(--text-secondary);">
+                            <i class="fas fa-receipt" style="font-size: 2.5rem; opacity: 0.2; display: block; margin-bottom: 1.5rem;"></i>
+                            NO FINANCIAL RECORDS DISCOVERED
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; display: flex; justify-content: space-between; align-items: flex-end;">
+    <div>
+        <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">EXPIRY <span>COMMAND</span></h1>
+        <p class="dashboard-subtitle">MEMBERSHIP STATUS INTELLIGENCE</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('dashboard') }}" class="premium-btn" style="width: auto; padding: 1.1rem 2.5rem; text-decoration: none; display: inline-flex; align-items: center; gap: 12px; border-radius: 16px; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white;">
+            <i class="fas fa-arrow-left"></i> <span>RETURN TO HQ</span>
+        </a>
+        {% if alert_list %}
+        <form action="{{ url_for('send_all_expiry_alerts') }}" method="POST" style="display: inline;">
+            <button type="submit" class="premium-btn" style="width: auto; padding: 1.1rem 2.5rem; border-radius: 16px; background: #FF5E5E; border-color: #FF5E5E; color: white;">
+                <i class="fas fa-paper-plane"></i> <span>NOTIFY ALL ATHLETES</span>
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="data-card" style="background: linear-gradient(135deg, rgba(255, 94, 94, 0.05) 0%, transparent 100%);">
+    <div class="table-header">
+        <h3 style="font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">URGENT EXPIRY LIST</h3>
+        <span style="color: #FF5E5E; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px;">{{ alert_list|length }} ACCOUNTS REQUIRING ACTION</span>
+    </div>
+    <div style="overflow: hidden;">
+        <table class="premium-table">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--glass-border);">
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">ATHLETE</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">MEMBERSHIP TIER</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">EXPIRY DATE</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">STATUS</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem; text-align: right;">ACTION</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in alert_list %}
+                <tr style="transition: 0.3s; {% if item.days_left < 0 %} background: rgba(255, 94, 94, 0.02); {% endif %}">
+                    <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <div style="font-weight: 800; color: white; font-size: 0.85rem;">{{ item.member.full_name.upper() }}</div>
+                        <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 2px;">{{ item.member.user.email }}</div>
+                    </td>
+                    <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">{{ item.member.plan.name.upper() if item.member.plan else 'NONE' }}</span>
+                    </td>
+                    <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.01); color: white; font-size: 0.75rem; font-weight: 700;">
+                        {{ item.member.expiry_date.strftime('%B %d, %Y') }}
+                    </td>
+                    <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <span style="padding: 4px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; letter-spacing: 1px; 
+                            {% if item.days_left < 0 %} background: rgba(255, 94, 94, 0.1); color: #FF5E5E; 
+                            {% elif item.days_left == 0 %} background: rgba(255, 122, 0, 0.1); color: var(--primary-orange);
+                            {% else %} background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); {% endif %}">
+                            {{ item.status_label }}
+                        </span>
+                    </td>
+                    <td style="padding: 1.2rem 2rem; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <form action="{{ url_for('send_expiry_alert', member_id=item.member.id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="premium-btn" style="width: auto; height: 32px; padding: 0 1rem; border-radius: 8px; font-size: 0.6rem; font-weight: 900; background: rgba(255, 94, 94, 0.1); color: #FF5E5E; border-color: rgba(255, 94, 94, 0.2);">
+                                SEND ALERT
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="padding: 6rem; text-align: center; color: var(--text-muted);">
+                        <i class="fas fa-check-circle" style="font-size: 3.5rem; opacity: 0.1; display: block; margin-bottom: 1.5rem; color: #10B981;"></i>
+                        <span style="font-weight: 800; letter-spacing: 1px; color: var(--text-dim);">SYSTEM CLEAR: NO URGENT EXPIRIES DISCOVERED</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

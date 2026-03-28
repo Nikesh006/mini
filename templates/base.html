@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAMMUDE GYM</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="{% if not current_user.is_authenticated %}auth-page{% endif %}">
+    <div class="flash-messages" style="z-index: 10000;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% set is_welcome = 'Welcome back' in message or 'Welcome to Nammude Gym' in message %}
+                    {% set is_first_time = 'Welcome to Nammude Gym' in message %}
+                    {% set is_bad = (category in ['error', 'danger', 'warning'] or 'DENIED' in message.upper() or 'VIOLATION' in message.upper() or 'PROTOCOL' in message.upper()) and category not in ['success', 'info'] %}
+                    {% set theme_color = '#FF7A00' if is_welcome else ('#ff4d4d' if is_bad else '#10B981') %}
+                    {% set glow_color = 'rgba(255, 122, 0, 0.2)' if is_welcome else ('rgba(255, 77, 77, 0.2)' if is_bad else 'rgba(16, 185, 129, 0.2)') %}
+                    {% set icon = 'fa-user-astronaut' if is_welcome else ('fa-shield-alt' if is_bad else 'fa-check-circle') %}
+                    
+                    <div id="msg-overlay-{{ loop.index }}" class="{% if is_welcome %}game-login-overlay{% endif %}" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 4, 8, 0.9); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 10001;">
+                        {% if is_welcome %}
+                            <div style="text-align: center;">
+                                <p class="typewriter-text" style="color: var(--primary-orange); font-weight: 900; letter-spacing: 5px; font-size: 3rem; text-transform: uppercase; margin: 0; display: inline-block; text-shadow: 0 0 30px rgba(255, 122, 0, 0.5);">
+                                    {% if is_first_time %}
+                                        {{ 'WELCOME TO NAMMUDE GYM, ' + message.split(', ')[1][:-1].upper() }}
+                                    {% else %}
+                                        {{ 'WELCOME BACK, ' + message.split(', ')[1][:-1].upper() }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        {% else %}
+                            <div class="auth-card" style="width: 550px; border: 2px solid {{ theme_color }}; box-shadow: 0 0 100px {{ glow_color }}; padding: 4rem; position: relative; margin: auto; transform: none !important;">
+                                <div style="width: 80px; height: 80px; background: {{ theme_color }}1a; border-radius: 25px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+                                    <i class="fas {{ icon }}" style="color: {{ theme_color }}; font-size: 2.5rem;"></i>
+                                </div>
+                                
+                                <h2 style="color: white; font-weight: 900; letter-spacing: -1px; margin-bottom: 1rem; font-size: 2rem; text-transform: uppercase;">
+                                    {{ 'ALERT' if is_bad else 'SUCCESS' }}
+                                </h2>
+                                
+                                <p style="color: {{ theme_color }}; font-weight: 800; letter-spacing: 2px; font-size: 0.75rem; margin-bottom: 2rem; text-transform: uppercase;">
+                                    {{ category.upper() }} {{ 'RESPONSE' if not is_bad else 'ERROR' }}
+                                </p>
+                                
+                                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 2rem; border-radius: 20px; color: white; font-weight: 600; line-height: 1.6; margin-bottom: 2.5rem;">
+                                    {{ message }}
+                                </div>
+                                
+                                <button onclick="document.getElementById('msg-overlay-{{ loop.index }}').remove()" class="premium-btn" style="background: white; color: black; font-weight: 900; border: none;">
+                                    ACKNOWLEDGE & CONTINUE
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <script>
+                        setTimeout(() => {
+                            const msgOverlay = document.getElementById('msg-overlay-{{ loop.index }}');
+                            if (msgOverlay) {
+                                msgOverlay.style.opacity = '0';
+                                msgOverlay.style.transition = 'opacity 0.8s ease';
+                                setTimeout(() => msgOverlay.remove(), 800);
+                            }
+                        }, {{ 5000 if is_welcome else 3000 }});
+                    </script>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div id="page-transition-overlay"></div>
+    {% if current_user.is_authenticated %}
+    <div class="mobile-top-bar">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="brand-logo" style="width: 30px; height: 30px; font-size: 0.9rem;"><i class="fas fa-bolt"></i></div>
+            <div class="brand-name" style="font-size: 1rem;">NAMMUDE <span>GYM</span></div>
+        </div>
+        <button id="sidebar-toggle" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+    <div id="sidebar-overlay"></div>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fas fa-bolt"></i></div>
+            <div class="brand-name">NAMMUDE <span>GYM</span></div>
+        </div>
+
+                <div class="sidebar-content">
+                    <div class="nav-section">
+                        <div class="nav-label">General</div>
+                        <ul class="nav-menu">
+                            <li class="nav-item">
+                                <a href="{{ url_for('dashboard') }}" class="nav-link">
+                                    <i class="fas fa-th-large"></i> <span>Dashboard</span>
+                                </a>
+                            </li>
+                            {% if current_user.role == 'user' %}
+                            <li class="nav-item">
+                                <a href="{{ url_for('view_workouts') }}" class="nav-link">
+                                    <i class="fas fa-dumbbell"></i> <span>Performance Plans</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('view_progress') }}" class="nav-link">
+                                    <i class="fas fa-chart-line"></i> <span>Transformation Progress</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('view_diet_plans') }}" class="nav-link">
+                                    <i class="fas fa-utensils"></i> <span>Nutrition Protocols</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('build_custom_plan') }}" class="nav-link">
+                                    <i class="fas fa-tools"></i> <span>Build Custom Plan</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('my_bookings') }}" class="nav-link" style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <i class="fas fa-calendar-alt"></i> <span>Session Bookings</span>
+                                    </div>
+                                    {% if pending_bookings_count > 0 %}
+                                        <span style="background: #EF4444; color: white; font-size: 0.6rem; font-weight: 900; padding: 2px 6px; border-radius: 50px; min-width: 18px; text-align: center; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); margin-left: 8px;">
+                                            {{ pending_bookings_count }}
+                                        </span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% if current_user.role == 'trainer' and active_session %}
+                             <li class="nav-item">
+                                <a href="{{ url_for('view_workouts') }}" class="nav-link">
+                                    <i class="fas fa-dumbbell"></i> <span>Performance Plans</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('view_diet_plans') }}" class="nav-link">
+                                    <i class="fas fa-utensils"></i> <span>Nutrition Protocols</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('my_bookings') }}" class="nav-link" style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <i class="fas fa-calendar-alt"></i> <span>Session Bookings</span>
+                                    </div>
+                                    {% if pending_bookings_count > 0 %}
+                                        <span style="background: #EF4444; color: white; font-size: 0.6rem; font-weight: 900; padding: 2px 6px; border-radius: 50px; min-width: 18px; text-align: center; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); margin-left: 8px;">
+                                            {{ pending_bookings_count }}
+                                        </span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% if current_user.role == 'admin' %}
+                            <li class="nav-item">
+                                <a href="{{ url_for('manage_custom_plans') }}" class="nav-link" style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <i class="fas fa-tasks"></i> <span>Custom Plan Requests</span>
+                                    </div>
+                                    {% if pending_custom_plans_count > 0 %}
+                                        <span style="background: var(--primary-orange); color: white; font-size: 0.6rem; font-weight: 900; padding: 2px 6px; border-radius: 50px; min-width: 18px; text-align: center; box-shadow: 0 0 10px rgba(255, 122, 0, 0.4); margin-left: 8px;">
+                                            {{ pending_custom_plans_count }}
+                                        </span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('my_bookings') }}" class="nav-link" style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <i class="fas fa-calendar-alt"></i> <span>Session Bookings</span>
+                                    </div>
+                                    {% if pending_bookings_count > 0 %}
+                                        <span style="background: #EF4444; color: white; font-size: 0.6rem; font-weight: 900; padding: 2px 6px; border-radius: 50px; min-width: 18px; text-align: center; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); margin-left: 8px;">
+                                            {{ pending_bookings_count }}
+                                        </span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if current_user.role != 'trainer' or (current_user.role == 'trainer' and active_session) %}
+                            <li class="nav-item">
+                                <a href="{{ url_for('attendance') }}" class="nav-link">
+                                    <i class="fas fa-calendar-check"></i> <span>Attendance</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('view_equipment') }}" class="nav-link">
+                                    <i class="fas fa-toolbox"></i> <span>Gym Gear</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+        
+                    <div class="nav-section">
+                        <div class="nav-label">Management</div>
+                        <ul class="nav-menu">
+                            {% if current_user.role in ['admin', 'trainer'] %}
+                            {% if current_user.role == 'trainer' and not active_session %}
+                                <li style="padding: 1rem; color: var(--text-dim); font-size: 0.6rem; text-align: center; border: 1px dashed var(--glass-border); border-radius: 12px; margin: 0 1rem;">
+                                    CHECK-IN REQUIRED FOR ACCESS
+                                </li>
+                            {% else %}
+                                <li class="nav-item">
+                                    {% if current_user.role == 'admin' %}
+                                    <a href="{{ url_for('view_payments') }}" class="nav-link">
+                                        <i class="fas fa-receipt"></i> <span>Revenue Hub</span>
+                                    </a>
+                                    {% endif %}
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('member_list') }}" class="nav-link">
+                                        <i class="fas fa-users"></i> <span>Member List</span>
+                                    </a>
+                                </li>
+                                {% if current_user.role == 'admin' %}
+                                <li class="nav-item">
+                                    <a href="{{ url_for('trainer_list') }}" class="nav-link">
+                                        <i class="fas fa-id-card"></i> <span>Trainer List</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('deletion_requests') }}" class="nav-link">
+                                        <i class="fas fa-user-slash"></i> <span>Account Deletions</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('manage_plans') }}" class="nav-link">
+                                        <i class="fas fa-gem"></i> <span>Membership Plans</span>
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li class="nav-item">
+                                    <a href="{{ url_for('reports_hub') }}" class="nav-link">
+                                        <i class="fas fa-chart-line"></i> <span>Reports Hub</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% elif current_user.role == 'user' %}                <li class="nav-item">
+                    <a href="{{ url_for('view_payments') }}" class="nav-link">
+                        <i class="fas fa-file-invoice-dollar"></i> <span>Billing Hub</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">System</div>
+            <ul class="nav-menu">
+                {% if current_user.role != 'trainer' or (current_user.role == 'trainer' and active_session) %}
+                <li class="nav-item">
+                    <a href="{{ url_for('settings') }}" class="nav-link">
+                        <i class="fas fa-cog"></i> <span>Settings</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        </div>
+
+        <div class="user-profile-card" style="padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 12px; margin-top: auto;">
+            <div class="avatar" style="width: 36px; height: 36px; overflow: hidden; background: none; flex-shrink: 0;">
+                {% if current_user.profile_pic and current_user.profile_pic != 'default.png' %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                {% else %}
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e293b, #0f172a); color: var(--primary-orange); font-weight: 700; border-radius: 8px; font-size: 0.8rem;">
+                        {{ current_user.username[:1].upper() }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="user-info" style="overflow: hidden;">
+                <div class="user-name" style="font-weight: 800; font-size: 0.8rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">{{ current_user.username.upper() }}</div>
+                <div class="user-role" style="font-size: 0.6rem; color: var(--primary-orange); font-weight: 700;">
+                    {% if current_user.role == 'admin' %}
+                        CHIEF DIRECTOR
+                    {% elif current_user.role == 'trainer' %}
+                        ELITE COACH
+                    {% else %}
+                        PREMIUM MEMBER
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+            <a href="{{ url_for('logout') }}" class="nav-link logout-btn-premium">
+                <i class="fas fa-power-off"></i> <span>SIGN OUT</span>
+            </a>
+        </div>
+    </aside>
+    <main class="main-wrapper">
+    {% else %}
+    <div class="auth-page">
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    {% if current_user.is_authenticated %}
+    </main>
+    {% else %}
+    </div>
+    {% endif %}
+
+    <script>
+        // Standard navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            // Transitions removed
+            
+            // Sidebar Toggle for Mobile
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (sidebarToggle && sidebar && overlay) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.add('active');
+                    overlay.classList.add('active');
+                });
+
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+        });
+
+        // Custom High-Impact Confirmation Overlay
+        function confirmProtocol(message, form) {
+            const overlayId = 'confirm-overlay-' + Date.now();
+            const overlay = document.createElement('div');
+            overlay.id = overlayId;
+            overlay.style = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 4, 8, 0.95); backdrop-filter: blur(25px); display: flex; align-items: center; justify-content: center; z-index: 20000; opacity: 0; transition: opacity 0.3s ease;";
+            
+            overlay.innerHTML = `
+                <div class="auth-card" style="width: 500px; border: 2px solid #ff4d4d; box-shadow: 0 0 100px rgba(255, 77, 77, 0.2); padding: 3rem; text-align: center; background: #0a0e14; border-radius: 24px;">
+                    <div style="width: 70px; height: 70px; background: rgba(255, 77, 77, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                        <i class="fas fa-exclamation-triangle" style="color: #ff4d4d; font-size: 2rem;"></i>
+                    </div>
+                    
+                    <h2 style="color: white; font-weight: 900; letter-spacing: -1px; margin-bottom: 0.5rem; font-size: 1.5rem; text-transform: uppercase;">
+                        SECURITY ALERT
+                    </h2>
+                    
+                    <p style="color: var(--text-secondary); font-weight: 600; line-height: 1.6; margin-bottom: 2rem; font-size: 0.9rem;">
+                        ${message}
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <button onclick="document.getElementById('${overlayId}').remove()" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); padding: 1rem; border-radius: 12px; font-weight: 900; letter-spacing: 1px; cursor: pointer; font-size: 0.75rem; text-transform: uppercase;">DISMISS</button>
+                        <button id="confirm-btn-${overlayId}" style="background: #ff4d4d; color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 900; letter-spacing: 1px; cursor: pointer; font-size: 0.75rem; text-transform: uppercase;">AUTHORIZE</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            setTimeout(() => overlay.style.opacity = '1', 10);
+            
+            document.getElementById(`confirm-btn-${overlayId}`).onclick = function() {
+                form.submit();
+            };
+            
+            return false; // Prevent immediate form submission
+        }
+
+        function showProtocolAlert(message, type = 'warning') {
+            const overlayId = 'alert-overlay-' + Date.now();
+            const color = type === 'success' ? '#10B981' : (type === 'danger' ? '#ff4d4d' : 'var(--primary-orange)');
+            const icon = type === 'success' ? 'fa-check-circle' : (type === 'danger' ? 'fa-times-circle' : 'fa-exclamation-circle');
+            
+            const overlay = document.createElement('div');
+            overlay.id = overlayId;
+            overlay.style = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 4, 8, 0.92); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 20001; opacity: 0; transition: opacity 0.3s ease;";
+            
+            overlay.innerHTML = `
+                <div class="auth-card" style="width: 450px; border: 2px solid ${color}; box-shadow: 0 0 80px ${color}22; padding: 3rem; text-align: center; background: #0a0e14; border-radius: 24px;">
+                    <div style="width: 70px; height: 70px; background: ${color}11; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                        <i class="fas ${icon}" style="color: ${color}; font-size: 2rem;"></i>
+                    </div>
+                    
+                    <h2 style="color: white; font-weight: 900; letter-spacing: -1px; margin-bottom: 1rem; font-size: 1.5rem; text-transform: uppercase;">
+                        PROTOCOL ALERT
+                    </h2>
+                    
+                    <p style="color: var(--text-secondary); font-weight: 600; line-height: 1.6; margin-bottom: 2rem; font-size: 0.9rem;">
+                        ${message}
+                    </p>
+                    
+                    <button onclick="document.getElementById('${overlayId}').remove()" style="width: 100%; background: ${color}; color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 900; letter-spacing: 1px; cursor: pointer; font-size: 0.75rem; text-transform: uppercase;">ACKNOWLEDGMENT</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            setTimeout(() => overlay.style.opacity = '1', 10);
+        }
+    </script>
+    <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('togglePassword');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+                toggleIcon.style.color = 'var(--primary-orange)';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+                toggleIcon.style.color = 'var(--text-dim)';
+            }
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('page-transition-overlay');
+            const links = document.querySelectorAll('.circle-transition-link');
+            const cards = document.querySelectorAll('.auth-card');
+
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetUrl = link.href;
+
+                    // Trigger fade out of card
+                    cards.forEach(card => card.classList.add('fade-out'));
+
+                    // Trigger circular expansion
+                    overlay.classList.add('active');
+
+                    // Navigate after animation completes
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 800);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+

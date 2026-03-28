@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; ">
+    <div style="margin-bottom: 1rem;">
+        <a href="{{ url_for('my_bookings') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-arrow-left"></i> BACK TO BOOKINGS
+        </a>
+    </div>
+    <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">BOOK <span>SESSION</span></h1>
+    <p class="dashboard-subtitle">SECURE YOUR ELITE COACHING SLOT</p>
+</div>
+
+<div class="data-card" style="max-width: 600px; margin: 0 auto; padding: 3rem;">
+    <form action="{{ url_for('book_session') }}" method="POST">
+        {% if current_user.role == 'admin' %}
+        <div style="margin-bottom: 2rem;">
+            <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.8rem;">SELECT ATHLETE</label>
+            <select name="member_id" required class="premium-input">
+                {% for member in members %}
+                    <option value="{{ member.id }}">{{ (member.full_name or '').upper() }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <div style="margin-bottom: 2rem;">
+            <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.8rem;">SELECT YOUR ELITE COACH (OPTIONAL)</label>
+            <select name="trainer_id" class="premium-input">
+                <option value="">NO TRAINER REQUIRED</option>
+                {% for trainer in trainers %}
+                    <option value="{{ trainer.id }}">{{ (trainer.full_name or '').upper() }} - {{ (trainer.specialization or '').upper() }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-bottom: 2.5rem;">
+            <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.8rem;">TARGET DATE</label>
+            <input type="date" name="booking_date" id="booking_date" required min="{{ now.strftime('%Y-%m-%d') }}" class="premium-input" onchange="refreshGearAvailability()">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2.5rem;">
+            <!-- Custom FROM Time Picker -->
+            <div class="time-picker-container">
+                <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">START PROTOCOL</label>
+                <div class="alarm-clock-input">
+                    <input type="number" name="from_h" min="1" max="12" placeholder="12" required oninput="if(this.value.length > 2) this.value = this.value.slice(0, 2); updateHiddenTimes();">
+                    <span>:</span>
+                    <input type="number" name="from_m" min="0" max="59" placeholder="00" required oninput="if(this.value.length > 2) this.value = this.value.slice(0, 2); updateHiddenTimes();">
+                    <div class="ap-toggle-group">
+                        <button type="button" onclick="setAP('from', 'AM')" id="from_AM" class="ap-btn active">AM</button>
+                        <button type="button" onclick="setAP('from', 'PM')" id="from_PM" class="ap-btn">PM</button>
+                    </div>
+                </div>
+                <input type="hidden" name="from_ap" id="hidden_from_ap" value="AM">
+                <input type="hidden" name="booking_time_from" id="hidden_from">
+            </div>
+
+            <!-- Custom TO Time Picker -->
+            <div class="time-picker-container">
+                <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">END PROTOCOL</label>
+                <div class="alarm-clock-input">
+                    <input type="number" name="to_h" min="1" max="12" placeholder="01" required oninput="if(this.value.length > 2) this.value = this.value.slice(0, 2); updateHiddenTimes();">
+                    <span>:</span>
+                    <input type="number" name="to_m" min="0" max="59" placeholder="00" required oninput="if(this.value.length > 2) this.value = this.value.slice(0, 2); updateHiddenTimes();">
+                    <div class="ap-toggle-group">
+                        <button type="button" onclick="setAP('to', 'AM')" id="to_AM" class="ap-btn">AM</button>
+                        <button type="button" onclick="setAP('to', 'PM')" id="to_PM" class="ap-btn active">PM</button>
+                    </div>
+                </div>
+                <input type="hidden" name="to_ap" id="hidden_to_ap" value="PM">
+                <input type="hidden" name="booking_time_to" id="hidden_to">
+            </div>
+        </div>
+
+        <style>
+            .alarm-clock-input {
+                background: rgba(255,255,255,0.03);
+                border: 1px solid var(--glass-border);
+                border-radius: 24px;
+                padding: 1.2rem;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 5px;
+                transition: all 0.3s ease;
+            }
+            .alarm-clock-input:focus-within {
+                border-color: var(--primary-orange);
+                background: rgba(255, 122, 0, 0.05);
+                box-shadow: 0 0 30px rgba(255, 122, 0, 0.1);
+            }
+            .alarm-clock-input input {
+                background: transparent;
+                border: none;
+                color: white;
+                font-size: 1.8rem;
+                font-weight: 900;
+                width: 50px;
+                text-align: center;
+                outline: none;
+                font-family: 'Outfit', sans-serif;
+            }
+            .alarm-clock-input span {
+                color: var(--primary-orange);
+                font-size: 1.5rem;
+                font-weight: 900;
+            }
+            .ap-toggle-group {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                border-left: 1px solid var(--glass-border);
+                padding-left: 10px;
+            }
+            .ap-btn {
+                background: rgba(255,255,255,0.05);
+                border: none;
+                color: var(--text-dim);
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 0.6rem;
+                font-weight: 900;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .ap-btn.active {
+                background: var(--primary-orange);
+                color: white;
+                box-shadow: 0 4px 10px rgba(255, 122, 0, 0.3);
+            }
+            /* Hide number arrows */
+            input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+        </style>
+
+        <script>
+            function setAP(prefix, val) {
+                // Update buttons
+                document.getElementById(prefix + '_AM').classList.remove('active');
+                document.getElementById(prefix + '_PM').classList.remove('active');
+                document.getElementById(prefix + '_' + val).classList.add('active');
+                
+                // Update hidden state
+                document.getElementById('hidden_' + prefix + '_ap').value = val;
+                updateHiddenTimes();
+            }
+
+            function updateHiddenTimes() {
+                const fH = document.getElementsByName('from_h')[0].value;
+                const fM = document.getElementsByName('from_m')[0].value;
+                const fAP = document.getElementById('hidden_from_ap').value;
+                
+                const tH = document.getElementsByName('to_h')[0].value;
+                const tM = document.getElementsByName('to_m')[0].value;
+                const tAP = document.getElementById('hidden_to_ap').value;
+
+                function to24(h, m, ap) {
+                    if (!h || !m) return "";
+                    let hour = parseInt(h);
+                    if (ap === 'PM' && hour < 12) hour += 12;
+                    if (ap === 'AM' && hour === 12) hour = 0;
+                    return `${hour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                }
+
+                document.getElementById('hidden_from').value = to24(fH, fM, fAP);
+                document.getElementById('hidden_to').value = to24(tH, tM, tAP);
+                
+                refreshGearAvailability();
+            }
+
+            async function refreshGearAvailability() {
+                const date = document.getElementById('booking_date').value;
+                const fromTime = document.getElementById('hidden_from').value;
+                const toTime = document.getElementById('hidden_to').value;
+                const gearSelect = document.getElementById('equipment_id');
+                const gearLabel = document.getElementById('gear_label');
+
+                if (date && fromTime && toTime) {
+                    gearLabel.innerHTML = 'RESERVE EQUIPMENT (CHECKING AVAILABILITY...)';
+                    try {
+                        const response = await fetch(`/api/check_equipment_availability?date=${date}&from=${fromTime}&to=${toTime}`);
+                        const data = await response.json();
+                        
+                        // Clear current options except first
+                        gearSelect.innerHTML = '<option value="">NO GEAR REQUIRED</option>';
+                        
+                        data.forEach(gear => {
+                            const option = document.createElement('option');
+                            option.value = gear.id;
+                            const status = gear.available > 0 ? `AVAILABLE: ${gear.available}/${gear.total}` : 'FULLY BOOKED';
+                            option.textContent = `${gear.name} (${status})`;
+                            if (gear.available === 0) {
+                                option.disabled = true;
+                                option.style.color = '#ff4d4d';
+                            }
+                            gearSelect.appendChild(option);
+                        });
+                        gearLabel.innerHTML = 'RESERVE EQUIPMENT (SLOT AVAILABILITY UPDATED)';
+                    } catch (error) {
+                        console.error('Gear Check Error:', error);
+                        gearLabel.innerHTML = 'RESERVE EQUIPMENT (AVAILABILITY CHECK FAILED)';
+                    }
+                }
+            }
+
+            // Auto-focus flow logic
+            const inputs = {
+                'from_h': document.getElementsByName('from_h')[0],
+                'from_m': document.getElementsByName('from_m')[0],
+                'to_h': document.getElementsByName('to_h')[0],
+                'to_m': document.getElementsByName('to_m')[0]
+            };
+
+            inputs.from_h.addEventListener('input', (e) => {
+                if (e.target.value.length >= 2) inputs.from_m.focus();
+            });
+
+            inputs.from_m.addEventListener('input', (e) => {
+                if (e.target.value.length >= 2) inputs.to_h.focus();
+            });
+
+            inputs.to_h.addEventListener('input', (e) => {
+                if (e.target.value.length >= 2) inputs.to_m.focus();
+            });
+        </script>
+
+        <div style="margin-bottom: 3rem;">
+            <label id="gear_label" style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.8rem;">RESERVE EQUIPMENT (OPTIONAL)</label>
+            <select name="equipment_id" id="equipment_id" class="premium-input">
+                <option value="">NO GEAR REQUIRED</option>
+                {% for gear in equipment %}
+                    <option value="{{ gear.id }}">{{ (gear.name or '').upper() }} (AVAILABLE NOW: {{ gear.available_now }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="premium-btn" style="width: 100%; padding: 1.2rem;">CONFIRM BOOKING REQUEST</button>
+    </form>
+</div>
+{% endblock %}
+

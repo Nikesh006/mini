@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="flex-stack-mobile" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4rem;">
+    <div>
+        <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">TRANSFORMATION <span>PROGRESS</span></h1>
+        <p class="dashboard-subtitle">TRACKING YOUR EVOLUTION ARCHIVE</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ url_for('download_progress', member_id=member.id) }}" class="premium-btn" style="padding: 1rem 2rem; border-radius: 14px; text-decoration: none; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border);">
+            <i class="fas fa-file-pdf"></i> <span>DOWNLOAD TRANSFORMATION REPORT</span>
+        </a>
+        <div class="data-card" style="padding: 1rem 2rem; display: flex; flex-direction: column; align-items: center; border-color: var(--primary-orange);">
+            <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px;">CURRENT BMI</span>
+            {% if member.height and member.weight %}
+                {% set height_m = member.height / 100 %}
+                {% set bmi = member.weight / (height_m * height_m) %}
+                <span style="font-size: 1.5rem; font-weight: 900; color: white;">{{ "%.1f"|format(bmi) }}</span>
+                <span style="font-size: 0.6rem; font-weight: 800; color: {{ '#10B981' if 18.5 <= bmi <= 24.9 else '#FFB800' if bmi < 18.5 else '#EF4444' }};">
+                    {{ 'NORMAL' if 18.5 <= bmi <= 24.9 else 'UNDERWEIGHT' if bmi < 18.5 else 'OVERWEIGHT' if 25 <= bmi <= 29.9 else 'OBESE' }}
+                </span>
+            {% else %}
+                <span style="font-size: 1.2rem; font-weight: 900; color: var(--text-dim);">N/A</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="data-card" style="padding: 2.5rem; margin-bottom: 2.5rem;">
+    <h3 style="font-weight: 700; letter-spacing: 1px; margin-bottom: 2rem;">VISUAL TRANSFORMATION CHART</h3>
+    <div style="height: 300px; width: 100%;">
+        <canvas id="weightChart"></canvas>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2.5rem;" class="flex-stack-mobile">
+    <div class="data-card" style="padding: 2.5rem;">
+        <h3 style="font-weight: 700; letter-spacing: 1px; margin-bottom: 2rem;">WEIGHT HISTORY LOG</h3>
+        <div style="overflow-x: auto;">
+            {% set reversed_logs = weight_logs|reverse|list %}
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>DATE</th>
+                        <th>WEIGHT</th>
+                        <th>CHANGE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in reversed_logs %}
+                    <tr>
+                        <td style="font-weight: 700;">{{ log.date.strftime('%B %d, %Y').upper() }}</td>
+                        <td style="color: var(--text-accent); font-weight: 800;">{{ log.weight }} KG</td>
+                        <td style="color: var(--text-secondary); font-size: 0.85rem;">
+                            {% if not loop.last %}
+                                {% set prev_weight = reversed_logs[loop.index].weight %}
+                                {% set diff = log.weight - prev_weight %}
+                                <span style="color: {{ '#EF4444' if diff > 0 else '#10B981' if diff < 0 else 'white' }}; font-weight: 800;">
+                                    {{ '+' if diff > 0 }}{{ "%.1f"|format(diff) }} KG
+                                </span>
+                            {% else %}
+                                --
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 4rem; opacity: 0.3;">
+                            NO PROGRESS LOGS FOUND
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 2.5rem;">
+        <div class="data-card" style="padding: 2.5rem; text-align: center; border-color: rgba(16, 185, 129, 0.2);">
+            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 2px; text-transform: uppercase;">Total Transformation</div>
+            {% if weight_logs|length >= 2 %}
+                {% set total_diff = weight_logs[-1].weight - weight_logs[0].weight %}
+                <div style="font-size: 2.5rem; font-weight: 900; color: #10B981; margin: 1rem 0;">{{ "%.1f"|format(total_diff|abs) }} KG</div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">{{ 'LOSS' if total_diff < 0 else 'GAIN' if total_diff > 0 else 'MAINTAINED' }}</div>
+            {% else %}
+                <div style="font-size: 1.5rem; font-weight: 900; color: var(--text-dim); margin: 1rem 0;">INSUFFICIENT DATA</div>
+            {% endif %}
+        </div>
+
+        {% if current_user.role in ['admin', 'trainer'] %}
+        <div class="data-card" style="padding: 2.5rem;">
+            <h3 style="font-weight: 800; margin-bottom: 1.5rem;">LOG NEW DATA</h3>
+            <form action="{{ url_for('update_weight') }}" method="POST">
+                <input type="hidden" name="member_id" value="{{ member.id }}">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.5rem;">CURRENT WEIGHT (KG)</label>
+                    <input type="number" step="0.1" name="weight" value="{{ member.weight }}" required style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; color: white; font-weight: 700; outline: none;">
+                </div>
+                <button type="submit" class="premium-btn" style="width: 100%;">RECORD TRANSFORMATION</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="data-card" style="padding: 2.5rem; text-align: center; background: rgba(255,255,255,0.02); border-style: dashed;">
+            <i class="fas fa-lock" style="font-size: 1.5rem; color: var(--text-dim); margin-bottom: 1rem;"></i>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;">ONLY AUTHORIZED COACHES CAN RECORD NEW TRANSFORMATION DATA.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        
+        const labels = [
+            {% for log in weight_logs %}
+                "{{ log.date.strftime('%b %d') }}",
+            {% endfor %}
+        ];
+        
+        const data = [
+            {% for log in weight_logs %}
+                {{ log.weight }},
+            {% endfor %}
+        ];
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Weight (KG)',
+                    data: data,
+                    borderColor: '#FF7A00',
+                    backgroundColor: 'rgba(255, 122, 0, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#FF7A00',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 6,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+

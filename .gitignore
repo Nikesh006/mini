@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+ENV/
+.env
+
+# Database
+instance/
+*.sqlite3
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project Specific
+static/uploads/*
+!static/uploads/.gitkeep
+gym-master/__pycache__/

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-card" style="width: 480px;">
+    <h2 class="typing-text" style="font-size: 2.4rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 0.6rem;">DELETE OTP</h2>
+    <p style="color: var(--text-dim); margin-bottom: 2.5rem; font-size: 0.9rem;">ENTER THE 6-DIGIT CODE SENT TO YOUR EMAIL TO PERMANENTLY DELETE THIS ADMIN ACCOUNT.</p>
+
+    <form method="POST">
+        <div style="text-align: left; margin-bottom: 0.6rem;">
+            <label for="otp" style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-left: 0.5rem;">DELETE VERIFICATION CODE</label>
+        </div>
+        <input type="text" id="otp" name="otp" class="premium-input" required maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="000000" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)">
+
+        <button type="submit" class="premium-btn" style="margin-top: 1.5rem;">VERIFY AND DELETE</button>
+    </form>
+
+    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+        <a href="{{ url_for('resend_delete_account_otp') }}" class="premium-btn" style="width: auto; padding: 0.8rem 1.4rem; text-decoration: none;">RESEND OTP</a>
+        <a href="{{ url_for('settings') }}" class="premium-btn" style="width: auto; padding: 0.8rem 1.4rem; text-decoration: none; background: rgba(255,255,255,0.05); color: white; border-color: var(--glass-border);">CANCEL</a>
+    </div>
+</div>
+{% endblock %}

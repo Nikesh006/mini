@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; ">
+    <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">EDIT <span>EQUIPMENT</span></h1>
+    <p class="dashboard-subtitle">MAINTAINING ELITE TRAINING INFRASTRUCTURE</p>
+</div>
+
+<div class="data-card" style="max-width: 600px; margin: 0 auto; padding: 3rem; ">
+    <form action="{{ url_for('edit_equipment', equipment_id=gear.id) }}" method="POST" enctype="multipart/form-data">
+        <div style="margin-bottom: 2rem;">
+            <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.8rem;">GEAR NAME</label>
+            <input type="text" name="name" value="{{ gear.name }}" required class="premium-input">
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <div style="flex: 1;">
+                <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.8rem;">TOTAL QUANTITY</label>
+                <input type="number" name="quantity" value="{{ gear.quantity }}" min="1" required class="premium-input">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.8rem;">BROKEN / MAINTENANCE</label>
+                <input type="number" name="broken_quantity" value="{{ gear.broken_quantity }}" min="0" required class="premium-input">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.8rem;">DESCRIPTION</label>
+            <textarea name="description" class="premium-input" style="height: 100px; resize: none;">{{ gear.description }}</textarea>
+        </div>
+
+        <div style="margin-bottom: 3rem;">
+            <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; display: block; margin-bottom: 0.8rem;">UPDATE GEAR VISUAL (OPTIONAL)</label>
+            <input type="file" name="image" class="premium-input">
+        </div>
+
+        <div style="display: flex; gap: 1.5rem;">
+            <a href="{{ url_for('view_equipment') }}" class="premium-btn" style="flex: 1; text-decoration: none; text-align: center; background: rgba(255,255,255,0.05); color: white; border-color: var(--glass-border);">CANCEL</a>
+            <button type="submit" class="premium-btn" style="flex: 2;">SAVE ARCHIVE CHANGES</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 4rem;  display: flex; justify-content: space-between; align-items: flex-end;">
+    <div>
+        <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">MEMBERSHIP <span>PLANS</span></h1>
+        <p class="dashboard-subtitle">MANAGE SYSTEM TIERS & PRICING</p>
+    </div>
+</div>
+
+<div class="metrics-grid" style="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));">
+    {% for plan in plans %}
+    <div class="metric-card" style=" text-align: left; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+            <div class="brand-logo" style="width: 45px; height: 45px; background: rgba(255, 122, 0, 0.1); color: var(--primary-orange);"><i class="fas fa-crown"></i></div>
+            <span style="font-size: 1.5rem; font-weight: 900; color: var(--text-accent);">₹{{ plan.price }}</span>
+        </div>
+        
+        <h3 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">{{ (plan.name or 'Unnamed Plan').upper() }}</h3>
+        
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem; flex-grow: 1; margin-bottom: 1.5rem;">
+            <label style="font-size: 0.6rem; font-weight: 900; color: var(--text-secondary); letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 1rem;">Included Features</label>
+            <div style="color: var(--text-accent); font-size: 0.85rem; line-height: 1.6;">
+                {{ plan.features }}
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <a href="{{ url_for('edit_plan', plan_id=plan.id) }}" class="premium-btn" style="width: auto; padding: 0.6rem 1.5rem; font-size: 0.75rem; border-radius: 12px; text-decoration: none;">EDIT PLAN</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+

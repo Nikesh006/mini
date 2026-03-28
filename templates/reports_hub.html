@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div style="margin-bottom: 4rem;">
+        <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">REPORTS <span>HUB</span></h1>
+        <p class="dashboard-subtitle">CENTRALIZED BUSINESS INTELLIGENCE & ARCHIVES</p>
+    </div>
+
+    <!-- Quick Stats Summary (Today's Performance) -->
+    <div class="metrics-grid" style="margin-bottom: 4rem;">
+        <div class="metric-card">
+            <span class="metric-label">TOTAL ATHLETES</span>
+            <div class="metric-value">{{ total_members }}</div>
+            <i class="fas fa-users" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+        </div>
+        <div class="metric-card" style="border-color: var(--primary-orange);">
+            <span class="metric-label" style="color: var(--primary-orange);">PERIOD REVENUE</span>
+            <div class="metric-value" style="color: var(--text-accent);">₹{{ "%.2f"|format(total_revenue) }}</div>
+            <i class="fas fa-wallet" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.05; color: var(--primary-orange);"></i>
+        </div>
+        <div class="metric-card">
+            <span class="metric-label">TODAY'S SESSIONS</span>
+            <div class="metric-value">{{ today_sessions }}</div>
+            <i class="fas fa-history" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+        </div>
+    </div>
+
+    <!-- Main Reporting Command Center (Grid) -->
+    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 2.5rem;">
+        <div style="width: 30px; height: 3px; background: var(--text-accent); border-radius: 10px;"></div>
+        <h2 style="font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 1rem; color: white;">QUICK ACTIONS</h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 2.5rem; margin-bottom: 5rem;">
+        
+        <!-- Individual Transformation Reports Section -->
+        <div class="data-card" style="padding: 2.5rem; position: relative; transition: 0.4s; border-color: rgba(16, 185, 129, 0.2); background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);">
+            <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <i class="fas fa-file-medical-alt" style="color: #10B981; font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="font-weight: 800; margin-bottom: 0.5rem; letter-spacing: 0.5px;">INDIVIDUAL TRANSFORMATION</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 2rem;">Access specific athlete evolution archives, progress charts, and PDF transformation logs.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <select id="athlete-selector" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; color: white; font-weight: 700; outline: none; appearance: auto; cursor: pointer;">
+                    <option value="" style="background: #121212;">-- SELECT ATHLETE PROTOCOL --</option>
+                    {% for member in all_members %}
+                    <option value="{{ member.user_id }}" data-id="{{ member.id }}" style="background: #121212;">{{ member.full_name.upper() }}</option>
+                    {% endfor %}
+                </select>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="viewAthleteProgress()" class="premium-btn" style="flex: 1; background: #10B981; border: none; color: white; font-size: 0.75rem;">
+                        <i class="fas fa-chart-line"></i> VIEW
+                    </button>
+                    <button onclick="downloadAthleteReport()" class="premium-btn" style="flex: 1; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); font-size: 0.75rem;">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {% if current_user.role == 'admin' %}
+        <!-- Revenue Archive Section -->
+        <div class="data-card" style="padding: 2.5rem; position: relative; transition: 0.4s; border-color: rgba(255, 122, 0, 0.2);">
+            <div style="width: 50px; height: 50px; background: rgba(255, 122, 0, 0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <i class="fas fa-file-invoice-dollar" style="color: var(--primary-orange); font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="font-weight: 800; margin-bottom: 0.5rem; letter-spacing: 0.5px;">REVENUE ARCHIVE</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 2rem;">Filter financial data and generate a comprehensive revenue report for any custom duration.</p>
+            
+            <form action="{{ url_for('reports_hub') }}" method="GET">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="color: var(--text-secondary); font-size: 0.6rem; font-weight: 800; letter-spacing: 1px; display: block; margin-bottom: 5px;">FROM</label>
+                        <input type="date" name="start_date" value="{{ start_date }}" class="premium-input" style="padding: 0.8rem; font-size: 0.8rem; margin-bottom: 0;" required>
+                    </div>
+                    <div>
+                        <label style="color: var(--text-secondary); font-size: 0.6rem; font-weight: 800; letter-spacing: 1px; display: block; margin-bottom: 5px;">TO</label>
+                        <input type="date" name="end_date" value="{{ end_date }}" class="premium-input" style="padding: 0.8rem; font-size: 0.8rem; margin-bottom: 0;" required>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="premium-btn" style="flex: 1; padding: 1rem; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white;">
+                        <i class="fas fa-sync-alt"></i> REFRESH STATS
+                    </button>
+                    <a href="{{ url_for('export_revenue', start_date=start_date, end_date=end_date) }}" class="premium-btn" style="flex: 1.5; padding: 1rem; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: var(--primary-orange); border: none; color: white; font-weight: 800;">
+                        <i class="fas fa-file-pdf"></i> EXPORT PDF
+                    </a>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Attendance Archive Section -->
+        <div class="data-card" style="padding: 2.5rem; position: relative; transition: 0.4s;">
+            <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <i class="fas fa-calendar-check" style="color: #10B981; font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="font-weight: 800; margin-bottom: 0.5rem; letter-spacing: 0.5px;">ATTENDANCE ARCHIVE</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 2rem;">Filter and generate a PDF of member sessions and coaching hours for a specific date range.</p>
+            
+            <form action="{{ url_for('download_attendance') }}" method="GET">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="color: var(--text-secondary); font-size: 0.6rem; font-weight: 800; letter-spacing: 1px; display: block; margin-bottom: 5px;">FROM</label>
+                        <input type="date" name="start_date" class="premium-input" style="padding: 0.8rem; font-size: 0.8rem; margin-bottom: 0;" required>
+                    </div>
+                    <div>
+                        <label style="color: var(--text-secondary); font-size: 0.6rem; font-weight: 800; letter-spacing: 1px; display: block; margin-bottom: 5px;">TO</label>
+                        <input type="date" name="end_date" class="premium-input" style="padding: 0.8rem; font-size: 0.8rem; margin-bottom: 0;" required>
+                    </div>
+                </div>
+                <button type="submit" class="premium-btn" style="width: 100%; padding: 1rem; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #10B981; border: none;">
+                    <i class="fas fa-file-pdf"></i> DOWNLOAD ATTENDANCE PDF
+                </button>
+            </form>
+        </div>
+
+        <!-- Inventory Audit Section -->
+        <div class="data-card" style="padding: 2.5rem; position: relative; transition: 0.4s; display: flex; flex-direction: column;">
+            <div style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <i class="fas fa-toolbox" style="color: #3b82f6; font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="font-weight: 800; margin-bottom: 0.5rem; letter-spacing: 0.5px;">INVENTORY AUDIT</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 2rem;">Monitor equipment health, manage maintenance schedules, and view full gear descriptions for the facility.</p>
+            
+            <a href="{{ url_for('view_equipment') }}" class="premium-btn" style="margin-top: auto; width: 100%; padding: 1rem; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); color: white;">
+                <i class="fas fa-eye"></i> VIEW LIVE INVENTORY
+            </a>
+        </div>
+
+        {% if current_user.role == 'admin' %}
+        <!-- Notification Center Section -->
+        <div class="data-card" style="padding: 2.5rem; position: relative; transition: 0.4s; display: flex; flex-direction: column; border-color: rgba(255, 94, 94, 0.2);">
+            <div style="width: 50px; height: 50px; background: rgba(255, 94, 94, 0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <i class="fas fa-bell" style="color: #FF5E5E; font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="font-weight: 800; margin-bottom: 0.5rem; letter-spacing: 0.5px;">NOTIFICATION CENTER</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 2rem;">Dispatch automated email alerts to members with expiring memberships (3 days remaining or today).</p>
+            
+            <a href="{{ url_for('expiry_alerts') }}" class="premium-btn" style="margin-top: auto; width: 100%; padding: 1rem; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255, 94, 94, 0.1); border: 1px solid rgba(255, 94, 94, 0.2); color: #FF5E5E;">
+                <i class="fas fa-paper-plane"></i> DISPATCH EXPIRY ALERTS
+            </a>
+        </div>
+
+        <!-- Export Logs / History Section -->
+        <div class="data-card" style="padding: 2.5rem; position: relative; transition: 0.4s; display: flex; flex-direction: column; background: rgba(255,255,255,0.02);">
+            <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <i class="fas fa-history" style="color: var(--text-accent); font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="font-weight: 800; margin-bottom: 0.5rem; letter-spacing: 0.5px;">EXPORT ARCHIVES</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 2rem;">Access historical report logs, track previous generations, and manage the system's export audit trail.</p>
+            
+            <a href="{{ url_for('export_history') }}" class="premium-btn" style="margin-top: auto; width: 100%; padding: 1rem; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white;">
+                <i class="fas fa-archive"></i> VIEW GENERATION LOGS
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- REVENUE LOG (Detailed Period Transactions) -->
+    {% if current_user.role == 'admin' %}
+    <div style="margin-bottom: 5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h3 style="font-weight: 800; letter-spacing: 0.5px; color: white;">REVENUE LOG</h3>
+                <p style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">Transactions for period: {{ start_date }} TO {{ end_date }}</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 1.2rem; border-radius: 10px; border: 1px solid var(--glass-border);">
+                <span style="font-size: 0.65rem; color: var(--text-dim); font-weight: 800; letter-spacing: 1px;">PERIOD TOTAL:</span>
+                <span style="font-weight: 900; color: var(--text-accent); margin-left: 10px;">₹{{ "%.2f"|format(total_revenue) }}</span>
+            </div>
+        </div>
+        
+        <div class="data-card" style="overflow: hidden;">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>TRANSACTION ID</th>
+                        <th>ATHLETE</th>
+                        <th>AMOUNT</th>
+                        <th>DATE</th>
+                        <th style="text-align: right;">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pay in payments %}
+                    <tr>
+                        <td style="color: var(--text-secondary); font-size: 0.8rem;">#INV-{{ "%04d"|format(pay.id) }}</td>
+                        <td style="color: white; font-weight: 700;">{{ pay.member.full_name if pay.member else 'Unknown' }}</td>
+                        <td style="color: var(--text-accent); font-weight: 800;">₹{{ "%.2f"|format(pay.amount) }}</td>
+                        <td style="color: var(--text-secondary);">{{ pay.payment_date.strftime('%Y-%m-%d') }}</td>
+                        <td style="text-align: right;">
+                            <span style="background: rgba(255, 122, 0, 0.1); color: var(--primary-orange); padding: 0.3rem 0.8rem; border-radius: 8px; font-size: 0.65rem; font-weight: 800; border: 1px solid rgba(255, 122, 0, 0.2);">
+                                {{ pay.status.upper() }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 4rem; text-align: center; color: var(--text-dim);">
+                            NO TRANSACTIONS FOUND IN THIS WINDOW
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function viewAthleteProgress() {
+    const userId = document.getElementById('athlete-selector').value;
+    if (userId) {
+        window.location.href = "{{ url_for('view_progress') }}/" + userId;
+    } else {
+        showProtocolAlert('PLEASE SELECT AN ATHLETE PROTOCOL FIRST.');
+    }
+}
+
+function downloadAthleteReport() {
+    const selector = document.getElementById('athlete-selector');
+    const memberId = selector.options[selector.selectedIndex].getAttribute('data-id');
+    if (memberId) {
+        window.location.href = "{{ url_for('download_progress', member_id=0) }}".replace('0', memberId);
+    } else {
+        showProtocolAlert('PLEASE SELECT AN ATHLETE PROTOCOL FIRST.');
+    }
+}
+</script>
+{% endblock %}

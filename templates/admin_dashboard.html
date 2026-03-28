@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; display: flex; justify-content: space-between; align-items: flex-end;">
+    <div>
+        <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">NAMMUDE <span>GYM</span></h1>
+        <p class="dashboard-subtitle">EXECUTIVE INTELLIGENCE CENTER</p>
+        {% if gym_id %}
+        <div style="margin-top: 1rem; display: inline-flex; align-items: center; gap: 10px; padding: 0.7rem 1rem; border-radius: 14px; background: rgba(255, 122, 0, 0.08); border: 1px solid rgba(255, 122, 0, 0.18);">
+            <span style="font-size: 0.65rem; font-weight: 900; letter-spacing: 1.5px; color: var(--text-dim);">GYM ID</span>
+            <span style="font-size: 0.82rem; font-weight: 800; letter-spacing: 1px; color: var(--text-accent);">{{ gym_id }}</span>
+        </div>
+        {% endif %}
+    </div>
+    <div>
+        <a href="{{ url_for('expiry_alerts') }}" class="premium-btn" style="width: auto; padding: 1.1rem 2.5rem; text-decoration: none; display: inline-flex; align-items: center; gap: 12px; border-radius: 16px; background: rgba(255, 94, 94, 0.1); border: 1px solid rgba(255, 94, 94, 0.2); color: #FF5E5E; margin-right: 10px;">
+            <i class="fas fa-bell" style="font-size: 0.9rem;"></i> <span>EXPIRY COMMAND</span>
+        </a>
+        <a href="{{ url_for('add_payment') }}" class="premium-btn" style="width: auto; padding: 1.1rem 2.5rem; text-decoration: none; display: inline-flex; align-items: center; gap: 12px; border-radius: 16px;">
+            <i class="fas fa-credit-card" style="font-size: 0.9rem;"></i> <span>RECORD PAYMENT</span>
+        </a>
+    </div>
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card" onclick="window.location.href='{{ url_for('member_list') }}'" style="cursor: pointer; ">
+        <span class="metric-label">NETWORK ATHLETES</span>
+        <div class="metric-value">{{ members_count }}</div>
+        {% if pending_members_count > 0 %}
+        <span style="position: absolute; right: 1.5rem; top: 1.5rem; background: #FF5E5E; color: white; padding: 4px 10px; border-radius: 50px; font-size: 0.65rem; font-weight: 900; box-shadow: 0 0 15px rgba(255, 94, 94, 0.4); ">{{ pending_members_count }} PENDING</span>
+        {% endif %}
+        <i class="fas fa-users" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+    <div class="metric-card" onclick="window.location.href='{{ url_for('trainer_list') }}'" style="cursor: pointer; ">
+        <span class="metric-label">ELITE COACHES</span>
+        <div class="metric-value">{{ trainers_count }}</div>
+        {% if pending_trainers_count > 0 %}
+        <span style="position: absolute; right: 1.5rem; top: 1.5rem; background: #FF5E5E; color: white; padding: 4px 10px; border-radius: 50px; font-size: 0.65rem; font-weight: 900; box-shadow: 0 0 15px rgba(255, 94, 94, 0.4); ">{{ pending_trainers_count }} PENDING</span>
+        {% endif %}
+        <i class="fas fa-crown" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+    
+    <style>
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    </style>
+    <div class="metric-card" style="cursor: pointer;  border-color: rgba(255, 122, 0, 0.2); position: relative;">
+        <span class="metric-label">TODAY'S REVENUE</span>
+        <div class="metric-value" onclick="window.location.href='{{ url_for('view_payments') }}'" style="color: var(--text-accent);">₹{{ "%.2f"|format(total_revenue or 0) }}</div>
+        <i class="fas fa-chart-line-up" onclick="window.location.href='{{ url_for('view_payments') }}'" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.05; color: var(--primary-orange);"></i>
+    </div>
+    <div class="metric-card" onclick="window.location.href='{{ url_for('manage_custom_plans') }}'" style="cursor: pointer;  {% if pending_custom_plans_count > 0 %} border-color: var(--primary-orange); {% endif %}">
+        <span class="metric-label">CUSTOM PLAN REQUESTS</span>
+        <div class="metric-value" style="{% if pending_custom_plans_count > 0 %} color: var(--text-accent); {% endif %}">{{ pending_custom_plans_count }}</div>
+        {% if pending_custom_plans_count > 0 %}
+        <span style="position: absolute; right: 1.5rem; top: 1.5rem; background: var(--primary-orange); color: white; padding: 4px 10px; border-radius: 50px; font-size: 0.65rem; font-weight: 900; box-shadow: 0 0 15px rgba(255, 122, 0, 0.4); ">ACTION REQUIRED</span>
+        {% endif %}
+        <i class="fas fa-file-invoice-dollar" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+    <div class="metric-card" onclick="window.location.href='{{ url_for('deletion_requests') }}'" style="cursor: pointer;  {% if deletion_requests_count > 0 %} border-color: #FF5E5E; {% endif %}">
+        <span class="metric-label">DELETION REQUESTS</span>
+        <div class="metric-value" style="{% if deletion_requests_count > 0 %} color: #FF5E5E; {% endif %}">{{ deletion_requests_count }}</div>
+        {% if deletion_requests_count > 0 %}
+        <a href="{{ url_for('deletion_requests') }}" style="position: absolute; right: 1.5rem; top: 1.5rem; background: #FF5E5E; color: white; padding: 4px 10px; border-radius: 50px; font-size: 0.65rem; font-weight: 900; box-shadow: 0 0 15px rgba(255, 94, 94, 0.4);  text-decoration: none;">ACTION REQUIRED</a>
+        {% endif %}
+        <i class="fas fa-user-minus" style="position: absolute; right: 2rem; bottom: 2rem; font-size: 3rem; opacity: 0.03;"></i>
+    </div>
+</div>
+
+{% if pending_plan_changes %}
+<div class="data-card" style="margin-top: 2rem; background: linear-gradient(135deg, rgba(255, 122, 0, 0.05) 0%, transparent 100%); border-color: rgba(255, 122, 0, 0.3);">
+    <div class="table-header">
+        <div>
+            <h3 style="font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-orange);">MEMBERSHIP TIER REQUESTS</h3>
+            <p style="font-size: 0.65rem; color: var(--text-secondary); font-weight: 700; letter-spacing: 2px; margin-top: 4px;">ATHLETES SEEKING PROTOCOL UPGRADES</p>
+        </div>
+        <span style="background: var(--primary-orange); color: white; padding: 4px 12px; border-radius: 50px; font-size: 0.6rem; font-weight: 900; letter-spacing: 1px;">{{ pending_plan_changes|length }} PENDING</span>
+    </div>
+    <div style="overflow: hidden;">
+        <table class="premium-table">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--glass-border);">
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">ATHLETE</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">CURRENT PROTOCOL</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">REQUESTED PROTOCOL</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">COST</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem; text-align: right;">AUTHORIZATION</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in pending_plan_changes %}
+                <tr style="transition: 0.3s;">
+                    <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <div style="font-weight: 800; color: white; font-size: 0.85rem;">{{ m.full_name.upper() }}</div>
+                        <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 2px;">#ID-{{ "%04d"|format(m.id) }}</div>
+                    </td>
+                    <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">{{ m.plan.name.upper() if m.plan else 'NONE' }}</span>
+                    </td>
+                    <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <span style="font-size: 0.75rem; font-weight: 900; color: #10B981; letter-spacing: 0.5px;">{{ m.pending_plan.name.upper() if m.pending_plan else 'UNKNOWN' }}</span>
+                    </td>
+                    <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: white;">₹{{ "%.2f"|format(m.pending_plan.price) if m.pending_plan else '0.00' }}</span>
+                    </td>
+                    <td style="padding: 1.2rem 2rem; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                            <form action="{{ url_for('approve_plan_change', member_id=m.id) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="premium-btn" style="width: auto; height: 32px; padding: 0 1rem; border-radius: 8px; font-size: 0.6rem; font-weight: 900;">AUTHORIZE</button>
+                            </form>
+                            <form action="{{ url_for('reject_plan_change', member_id=m.id) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="premium-btn" style="width: auto; height: 32px; padding: 0 1rem; border-radius: 8px; font-size: 0.6rem; font-weight: 900; background: rgba(255,255,255,0.05); color: #FF5E5E; border-color: rgba(255, 94, 94, 0.2);">DISMISS</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="data-card" style="margin-top: 2rem; overflow: hidden;">
+        <table class="premium-table">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--glass-border);">
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">TYPE</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">ATHLETE / COACH</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem;">IN TIME</th>
+                    <th style="padding: 1rem 2rem; font-size: 0.6rem; text-align: right;">OUT TIME / STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr style="transition: 0.3s;">
+                    <td style="width: 50px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        {% if log.type == 'Attendance' %}
+                        <div style="width: 32px; height: 32px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user-check" style="color: #10B981; font-size: 0.7rem;"></i>
+                        </div>
+                        {% else %}
+                        <div style="width: 32px; height: 32px; background: rgba(255, 122, 0, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-receipt" style="color: var(--primary-orange); font-size: 0.7rem;"></i>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td style="border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        <div style="font-weight: 800; color: white; font-size: 0.85rem;">{{ log.user.upper() }}</div>
+                        <div style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 2px;">{{ log.msg.upper() }}</div>
+                    </td>
+                    <td style="border-bottom: 1px solid rgba(255,255,255,0.01); color: white; font-size: 0.75rem; font-weight: 700;">
+                        {{ log.time.strftime('%I:%M %p') }}
+                    </td>
+                    <td style="text-align: right; border-bottom: 1px solid rgba(255,255,255,0.01);">
+                        {% if log.type == 'Attendance' %}
+                            {% if log.out_time %}
+                                <span style="color: var(--text-dim); font-size: 0.75rem; font-weight: 700;">{{ log.out_time.strftime('%I:%M %p') }}</span>
+                            {% else %}
+                                <span style="background: rgba(255, 122, 0, 0.1); color: var(--primary-orange); padding: 4px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; letter-spacing: 1px; ">INSIDE GYM</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: var(--text-dim); font-size: 0.6rem; font-weight: 800;">COMPLETED</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="padding: 4rem; text-align: center; color: var(--text-muted);">
+                        <i class="fas fa-history" style="font-size: 2.5rem; opacity: 0.1; display: block; margin-bottom: 1.5rem;"></i>
+                        NO RECENT LOGS DISCOVERED
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

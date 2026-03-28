@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; ">
+    <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">DELETION <span>REQUESTS</span></h1>
+    <p class="dashboard-subtitle">ACCOUNT REMOVAL AUTHORIZATION CENTER</p>
+</div>
+
+<div class="data-card" style="">
+    <div class="table-header">
+        <h3 style="font-weight: 700; letter-spacing: 1px;">PENDING REQUESTS</h3>
+        <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">{{ requests|length }} TOTAL REQUESTS</span>
+    </div>
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>USER</th>
+                <th>ROLE</th>
+                <th>EMAIL</th>
+                <th>PHONE</th>
+                <th>JOINED DATE</th>
+                <th style="text-align: right;">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in requests %}
+            <tr style="">
+                <td>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="avatar" style="width: 32px; height: 32px; font-size: 0.75rem; background: var(--orange-glow); color: var(--primary-orange); overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid rgba(255, 122, 0, 0.2);">
+                            {% if user.profile_pic and user.profile_pic != 'default.png' %}
+                                <img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                {{ (user.username[:1] or 'U').upper() }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span style="font-weight: 700; font-size: 0.9rem; display: block; color: white;">{{ user.username.upper() }}</span>
+                            <span style="font-size: 0.7rem; color: var(--text-dim);">ID: #{{ user.id }}</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span style="font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; color: var(--text-accent);">
+                        {{ user.role.upper() }}
+                    </span>
+                </td>
+                <td style="color: var(--text-secondary); font-size: 0.85rem;">{{ user.email }}</td>
+                <td style="color: var(--text-secondary); font-size: 0.85rem;">{{ user.phone or 'N/A' }}</td>
+                <td style="color: white; font-weight: 700; font-size: 0.8rem;">
+                    {{ user.date_created.strftime('%Y-%m-%d') if user.date_created else 'N/A' }}
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+                        <form action="{{ url_for('reject_deletion', user_id=user.id) }}" method="POST">
+                            <button type="submit" class="premium-btn" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); padding: 6px 15px; border-radius: 50px; font-size: 0.65rem; font-weight: 800; width: auto;">REJECT</button>
+                        </form>
+                        
+                        <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" onsubmit="return confirmProtocol('Warning: Are you sure you want to permanently remove this account and all associated archives?', this);">
+                            <button type="submit" class="premium-btn" style="background: #ff4d4d; color: white; border: none; padding: 6px 15px; border-radius: 50px; font-size: 0.65rem; font-weight: 800; width: auto; box-shadow: 0 0 100px rgba(255, 77, 77, 0.2);">APPROVE DELETION</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="padding: 5rem; text-align: center; color: var(--text-secondary);">
+                    <div style="margin-bottom: 1.5rem; opacity: 0.2;">
+                        <i class="fas fa-shield-check" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4 style="color: white; font-weight: 800; margin-bottom: 0.5rem;">SECURE ARCHIVE</h4>
+                    <p style="font-size: 0.8rem; letter-spacing: 1px;">NO PENDING DELETION REQUESTS DETECTED IN THE SYSTEM.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+</style>
+{% endblock %}
+

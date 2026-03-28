@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="flex-stack-mobile" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">GYM <span>GEAR</span></h1>
+            <p class="dashboard-subtitle">EQUIPMENT STATUS & MAINTENANCE</p>
+        </div>
+        {% if current_user.role in ['admin', 'trainer'] %}
+            <button onclick="toggleEquipModal()" class="premium-btn" style="width: auto; padding: 1rem 2rem; border-radius: 14px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-plus-circle"></i> <span>ADD EQUIPMENT</span>
+            </button>
+        {% endif %}
+    </div>
+
+    <!-- Equipment Modal (Admin/Trainer) -->
+    <div id="equipModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 3000; align-items: center; justify-content: center;">
+        <div class="auth-card" style="max-width: 500px; width: 90%; padding: 3rem 2rem; position: relative; margin: 1rem;">
+            <button onclick="toggleEquipModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
+            <h2 style="font-weight: 800; margin-bottom: 2rem; text-align: center;">ADD NEW GEAR</h2>
+            <form action="{{ url_for('add_equipment') }}" method="POST" enctype="multipart/form-data">
+                <input type="text" name="name" class="premium-input" placeholder="EQUIPMENT NAME (e.g., POWER RACK)" required>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label style="color: var(--text-secondary); font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 0.5rem; text-transform: uppercase;">TOTAL QUANTITY</label>
+                        <input type="number" name="quantity" class="premium-input" value="1" min="1" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="color: var(--text-secondary); font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 0.5rem; text-transform: uppercase;">NOT WORKING</label>
+                        <input type="number" name="broken_quantity" class="premium-input" value="0" min="0" required>
+                    </div>
+                </div>
+                <textarea name="description" class="premium-input" placeholder="DESCRIPTION / DETAILS" style="height: 100px; padding: 1rem;"></textarea>
+                
+                <label style="color: var(--text-secondary); font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin: 1rem 0 0.5rem; text-transform: uppercase;">GEAR PHOTO</label>
+                <input type="file" name="image" class="premium-input" style="padding: 0.8rem;">
+                
+                <button type="submit" class="premium-btn" style="margin-top: 1rem;">ADD TO INVENTORY</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; margin-top: 2rem;">
+        {% for item in gear %}
+        <div class="data-card" style="padding: 0; overflow: hidden; border: 1px solid var(--glass-border); transition: 0.3s; position: relative;">
+            <!-- Status Badge -->
+            <div style="position: absolute; top: 1.5rem; right: 1.5rem; z-index: 10;">
+                {% if item.broken_quantity == 0 %}
+                    <span style="background: rgba(0, 255, 122, 0.1); color: #00ff7a; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.65rem; font-weight: 800; border: 1px solid rgba(0, 255, 122, 0.2); backdrop-filter: blur(5px);">
+                        ALL WORKING
+                    </span>
+                {% elif item.broken_quantity < item.quantity %}
+                    <span style="background: rgba(255, 159, 67, 0.1); color: #ff9f43; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.65rem; font-weight: 800; border: 1px solid rgba(255, 159, 67, 0.2); backdrop-filter: blur(5px);">
+                        {{ item.broken_quantity }} IN MAINTENANCE
+                    </span>
+                {% else %}
+                    <span style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.65rem; font-weight: 800; border: 1px solid rgba(255, 77, 77, 0.2); backdrop-filter: blur(5px);">
+                        OUT OF ORDER
+                    </span>
+                {% endif %}
+            </div>
+
+            <div style="height: 200px; overflow: hidden; position: relative;">
+                <img src="{{ url_for('static', filename='uploads/' + item.image_file) }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;">
+                <div style="position: absolute; top: 1rem; left: 1rem; background: rgba(0,0,0,0.6); padding: 4px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; color: white; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 2px;">
+                    <span style="color: var(--text-accent);">TOTAL: {{ item.quantity }}</span>
+                    <span style="color: {{ '#10B981' if item.available_now > 0 else '#EF4444' }};">AVAILABLE: {{ item.available_now }}</span>
+                </div>
+                <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 2rem 1.5rem 1rem; background: linear-gradient(to top, rgba(10, 11, 14, 1), transparent);">
+                    <h3 style="font-weight: 800; color: white; letter-spacing: 1px; margin: 0;">{{ item.name.upper() }}</h3>
+                </div>
+            </div>
+
+            <div style="padding: 1.5rem;">
+                <p style="color: var(--text-dim); font-size: 0.8rem; line-height: 1.5; margin-bottom: 1.5rem;">{{ item.description or 'No additional details provided.' }}</p>
+                
+                {% if current_user.role in ['admin', 'trainer'] %}
+                <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+                    <a href="{{ url_for('edit_equipment', equipment_id=item.id) }}" class="premium-btn" style="font-size: 0.75rem; padding: 0.8rem; text-decoration: none; text-align: center; background: rgba(255,255,255,0.05); color: white; border-color: var(--glass-border);">
+                        <i class="fas fa-edit" style="margin-right: 8px;"></i> UPDATE STOCK / REPAIR
+                    </a>
+                    
+                    {% if current_user.role == 'admin' %}
+                        <form action="{{ url_for('delete_equipment', equipment_id=item.id) }}" method="POST" style="margin-top: 0.5rem;">
+                            <button type="submit" style="background: none; border: none; color: #ff4d4d; font-size: 0.65rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 5px; opacity: 0.6; transition: 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+                                <i class="fas fa-trash"></i> DELETE EQUIPMENT
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 5rem; border: 1px dashed var(--glass-border); border-radius: 30px;">
+            <i class="fas fa-toolbox" style="font-size: 3rem; color: var(--text-dim); opacity: 0.2; display: block; margin-bottom: 1.5rem;"></i>
+            <p style="color: var(--text-dim); font-weight: 700;">No equipment found in the gym inventory archive.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function toggleEquipModal() {
+        const modal = document.getElementById('equipModal');
+        modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+    }
+</script>
+{% endblock %}
+

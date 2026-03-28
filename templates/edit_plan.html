@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 3.5rem; ">
+    <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">EDIT <span>PLAN</span></h1>
+    <p class="dashboard-subtitle">CONFIGURING {{ (plan.name or 'New Plan').upper() }} PROTOCOL</p>
+</div>
+
+<div style="display: flex; justify-content: center; ">
+    <div class="data-card" style="width: 600px; padding: 4rem; background: var(--glass-card);">
+        <form method="POST">
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">PLAN NAME</label>
+                <input type="text" name="name" class="premium-input" required value="{{ plan.name }}">
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">PRICE (INR)</label>
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 1.2rem; top: 1.1rem; color: var(--text-secondary); font-weight: 600;">₹</span>
+                    <input type="number" step="0.01" name="price" class="premium-input" required value="{{ plan.price }}" style="padding-left: 2.5rem;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">DURATION (DAYS)</label>
+                <input type="number" name="duration_days" class="premium-input" required value="{{ plan.duration_days }}">
+            </div>
+
+            <div style="margin-bottom: 3rem;">
+                <label style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; display: block; margin-bottom: 1rem; text-transform: uppercase;">FEATURES</label>
+                <textarea name="features" rows="5" class="premium-input" required style="resize: none; line-height: 1.6;">{{ plan.features }}</textarea>
+                <p style="font-size: 0.6rem; color: var(--text-dim); margin-top: 0.5rem;">Separate features with commas for better display.</p>
+            </div>
+
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <button type="submit" class="premium-btn" style="flex-grow: 1;">UPDATE PLAN</button>
+                <a href="{{ url_for('manage_plans') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;">CANCEL</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

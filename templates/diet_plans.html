@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; ">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+            <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 0.5rem; color: white;">NUTRITION <span>PLANS</span></h1>
+            <p class="dashboard-subtitle">DIETARY PROTOCOL ARCHIVE</p>
+        </div>
+        {% if current_user.role in ['trainer', 'admin'] %}
+            <a href="{{ url_for('assign_diet') }}" class="premium-btn" style="width: auto; padding: 1rem 2.5rem; text-decoration: none; display: flex; align-items: center; gap: 12px; border-radius: 16px;">
+                <i class="fas fa-plus" style="font-size: 0.8rem;"></i> <span>ASSIGN NEW PROTOCOL</span>
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="metrics-grid" style="grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));">
+    {% for diet in diet_plans %}
+        <div class="metric-card" style=" text-align: left; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+                <div class="brand-logo" style="width: 45px; height: 45px; background: rgba(0, 198, 255, 0.1); color: #00c6ff;"><i class="fas fa-utensils"></i></div>
+                <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-secondary); letter-spacing: 1.5px; opacity: 0.6;">{{ diet.created_at.strftime('%Y-%m-%d') if diet.created_at else 'N/A' }}</span>
+            </div>
+            
+            <h3 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 0.5rem; letter-spacing: -0.5px;">{{ diet.plan_name.upper() }}</h3>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem;">
+                <p style="font-size: 0.75rem; font-weight: 700; color: #00c6ff; letter-spacing: 1px;">ATHLETE: {{ (diet.member.full_name if diet.member else 'Unknown Member').upper() }}</p>
+                <span style="background: rgba(0, 198, 255, 0.1); color: #00c6ff; padding: 2px 8px; border-radius: 6px; font-size: 0.6rem; font-weight: 800; border: 1px solid rgba(0, 198, 255, 0.2);">COACH: {{ diet.trainer.full_name.upper() }}</span>
+            </div>
+            
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.5;">{{ diet.description }}</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem;">
+                    <label style="font-size: 0.55rem; font-weight: 900; color: #00c6ff; letter-spacing: 1.5px; text-transform: uppercase; display: block; margin-bottom: 0.5rem;">Breakfast</label>
+                    <div style="color: white; font-size: 0.8rem; line-height: 1.4; white-space: pre-line;">{{ diet.breakfast or 'N/A' }}</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem;">
+                    <label style="font-size: 0.55rem; font-weight: 900; color: #00c6ff; letter-spacing: 1.5px; text-transform: uppercase; display: block; margin-bottom: 0.5rem;">Lunch</label>
+                    <div style="color: white; font-size: 0.8rem; line-height: 1.4; white-space: pre-line;">{{ diet.lunch or 'N/A' }}</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem;">
+                    <label style="font-size: 0.55rem; font-weight: 900; color: #00c6ff; letter-spacing: 1.5px; text-transform: uppercase; display: block; margin-bottom: 0.5rem;">Dinner</label>
+                    <div style="color: white; font-size: 0.8rem; line-height: 1.4; white-space: pre-line;">{{ diet.dinner or 'N/A' }}</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem;">
+                    <label style="font-size: 0.55rem; font-weight: 900; color: #00c6ff; letter-spacing: 1.5px; text-transform: uppercase; display: block; margin-bottom: 0.5rem;">Snacks</label>
+                    <div style="color: white; font-size: 0.8rem; line-height: 1.4; white-space: pre-line;">{{ diet.snacks or 'N/A' }}</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                {% if current_user.role in ['admin', 'trainer'] %}
+                <form action="{{ url_for('delete_diet', diet_id=diet.id) }}" method="POST" onsubmit="return confirmProtocol('REMOVE THIS NUTRITION PROTOCOL FROM THE ATHLETE ARCHIVE?', this);">
+                    <button type="submit" style="background: none; border: none; padding: 0; font-family: inherit; font-size: 0.7rem; letter-spacing: 1px; color: #ff4d4d; cursor: pointer; font-weight: 700;">DELETE PROTOCOL <i class="fas fa-trash-alt" style="font-size: 0.6rem; margin-left: 5px;"></i></button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="data-card" style="grid-column: 1 / -1; padding: 5rem; text-align: center; background: var(--glass-card);">
+            <i class="fas fa-apple-alt" style="font-size: 3rem; color: #00c6ff; opacity: 0.2; margin-bottom: 2rem;"></i>
+            <h3 style="color: var(--text-secondary);">NO NUTRITION PROTOCOLS ASSIGNED</h3>
+            <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.5rem;">Athletes without assigned plans are currently on standard maintenance.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
